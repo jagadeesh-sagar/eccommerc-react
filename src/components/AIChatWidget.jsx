@@ -25,7 +25,7 @@ import { getCSRF }   from '../utils/csrf'
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://api.chatram.in'
 
 const SUGGESTIONS = [
   'Show me the latest products',
