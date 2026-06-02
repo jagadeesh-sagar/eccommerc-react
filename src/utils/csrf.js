@@ -11,7 +11,7 @@
  * can force-refresh it after a token rotation.
  */
 
-const API_BASE = 'http://localhost:8000'
+const API_BASE = 'https://api.chatram.in'
 
 /**
  * Read the current CSRF token from the csrftoken cookie.
