@@ -21,7 +21,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import client from '../api/client'
 import { getCSRF } from '../utils/csrf'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://api.chatram.in'
 const WS_BASE  = API_BASE.replace(/^http/, 'ws')
 
 // ── JWT helper (3-strategy fallback) ──────────────────────────────────────────
