@@ -79,7 +79,7 @@ function useSellerCheck() {
 
   useEffect(() => {
     client
-      .get("/user/seller/registration/")
+      .get("/seller/registration/")
       .then(({ data }) => {
         const list = Array.isArray(data) ? data : [];
         setStatus(list.length > 0 ? "exists" : "none");
