@@ -14,7 +14,7 @@ export default function SellerRegistrationForm({ onSuccess }) {
     setError("");
 
     try {
-      await client.post("/user/seller/registration/", {
+      await client.post("/seller/registration/", {
         business_name,
         gst_number,
       });
