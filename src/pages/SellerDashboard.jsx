@@ -81,8 +81,15 @@ function useSellerCheck() {
     client
       .get("/seller/registration/")
       .then(({ data }) => {
-        const list = Array.isArray(data) ? data : [];
-        setStatus(list.length > 0 ? "exists" : "none");
+        let isSeller = false;
+        if (Array.isArray(data)) {
+          isSeller = data.length > 0;
+        } else if (data && Array.isArray(data.results)) {
+          isSeller = data.results.length > 0;
+        } else if (data && Object.keys(data).length > 0) {
+          isSeller = true;
+        }
+        setStatus(isSeller ? "exists" : "none");
       })
       .catch(() => {
         setStatus("none");
