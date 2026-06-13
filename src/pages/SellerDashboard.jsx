@@ -122,10 +122,146 @@ function TabBar({ active, onChange }) {
 // ── Tab 1: Products ───────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
 
+function ProductDeleteModal({ product, onClose, onSuccess }) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleDelete() {
+    setDeleting(true);
+    setError("");
+    try {
+      const pid = extractId(product.product_detail);
+      await client.delete(`/user/product/delete/${pid}/`);
+      onSuccess(product);
+    } catch (err) {
+      setError("Failed to delete product.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Product</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Are you sure you want to delete <strong>{product.product_name}</strong>? This action cannot be undone.
+        </p>
+        {/* Future OTP step could be inserted here */}
+        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            disabled={deleting}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 transition-colors flex items-center gap-2"
+          >
+            {deleting && <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+            {deleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ManageMediaModal({ product, onClose }) {
+  const [media, setMedia] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
+
+  useEffect(() => {
+    const pid = extractId(product.product_detail);
+    if (!pid) {
+      setError("Invalid product ID.");
+      setLoading(false);
+      return;
+    }
+    client.get(`/user/product/detail/${pid}`)
+      .then(({ data }) => {
+        setMedia(data.images || []);
+      })
+      .catch(() => setError("Failed to load media."))
+      .finally(() => setLoading(false));
+  }, [product]);
+
+  async function handleDeleteMedia(mediaId) {
+    setDeletingId(mediaId);
+    try {
+      await client.delete('/user/product/image/', { data: { image_id: mediaId } });
+      setMedia(prev => prev.filter(m => m.id !== mediaId));
+    } catch (err) {
+      alert("Failed to delete media.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-xl max-h-[90vh] flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Manage Media: {product.product_name}</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+        </div>
+        <div className="flex-1 overflow-y-auto min-h-[200px] pr-2">
+          {loading ? (
+            <div className="flex justify-center items-center h-full"><span className="inline-block w-6 h-6 border-2 border-[#e77600] border-t-transparent rounded-full animate-spin" /></div>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : media.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No images or videos found for this product.</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {media.map(m => {
+                const isVideo = !!m.video_url;
+                const url = m.image_url || m.video_url;
+                return (
+                  <div key={m.id} className="relative border rounded overflow-hidden group bg-gray-50">
+                    {isVideo && !m.image_url ? (
+                      <div className="w-full h-32 flex items-center justify-center bg-gray-800 text-white font-medium">Video</div>
+                    ) : (
+                      <img src={url} alt="product media" className="w-full h-32 object-cover" />
+                    )}
+                    <div className="absolute top-1 right-1">
+                      <button
+                        onClick={() => handleDeleteMedia(m.id)}
+                        disabled={deletingId === m.id}
+                        className="bg-white/90 hover:bg-red-50 text-red-600 rounded p-1.5 shadow backdrop-blur transition-colors disabled:opacity-50"
+                        title="Delete media"
+                      >
+                        {deletingId === m.id ? (
+                           <span className="inline-block w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProductsTab() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteProduct, setDeleteProduct] = useState(null);
+  const [manageMediaProduct, setManageMediaProduct] = useState(null);
+  const [toastMsg, setToastMsg] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -142,6 +278,13 @@ function ProductsTab() {
       .catch(() => setError("Failed to load products."))
       .finally(() => setLoading(false));
   }, []);
+
+  function handleDeleted(prod) {
+    setProducts(prev => prev.filter(p => p !== prod));
+    setDeleteProduct(null);
+    setToastMsg(`Product "${prod.product_name}" deleted.`);
+    setTimeout(() => setToastMsg(""), 4000);
+  }
 
   if (loading)
     return (
@@ -166,7 +309,12 @@ function ProductsTab() {
     );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 relative">
+      {toastMsg && (
+        <div className="absolute top-0 right-0 px-4 py-2 bg-green-50 text-green-700 text-sm border border-green-200 rounded shadow-sm z-10 transition-all">
+          ✓ {toastMsg}
+        </div>
+      )}
       <p className="text-xs text-gray-400 mb-4">
         Showing all active products on the platform. Use <em>Create Product</em>{" "}
         to add yours.
@@ -202,18 +350,45 @@ function ProductsTab() {
               {fmt(p.base_price)}
             </p>
 
-            {/* Link */}
-            {pid && (
-              <Link
-                to={`/product/${pid}`}
-                className="flex-shrink-0 text-xs text-[#007185] hover:text-[#c7511f] hover:underline font-medium"
+            {/* Actions */}
+            <div className="flex items-center gap-3 flex-shrink-0 ml-2">
+              <button
+                onClick={() => setManageMediaProduct(p)}
+                className="text-xs text-orange-600 hover:text-orange-800 hover:underline font-medium"
               >
-                View →
-              </Link>
-            )}
+                Manage Media
+              </button>
+              {pid && (
+                <Link
+                  to={`/product/${pid}`}
+                  className="text-xs text-[#007185] hover:text-[#c7511f] hover:underline font-medium"
+                >
+                  View
+                </Link>
+              )}
+              <button
+                onClick={() => setDeleteProduct(p)}
+                className="text-xs text-red-600 hover:text-red-800 hover:underline font-medium"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         );
       })}
+      {deleteProduct && (
+        <ProductDeleteModal
+          product={deleteProduct}
+          onClose={() => setDeleteProduct(null)}
+          onSuccess={handleDeleted}
+        />
+      )}
+      {manageMediaProduct && (
+        <ManageMediaModal
+          product={manageMediaProduct}
+          onClose={() => setManageMediaProduct(null)}
+        />
+      )}
     </div>
   );
 }
@@ -329,7 +504,7 @@ function VideoIcon() {
   );
 }
 
-function ImageUploadStep({ productId, productName, onCreateAnother }) {
+function ImageUploadStep({ productId, productName, onCreateAnother, onGoToDashboard }) {
   const fileRef = useRef(null);
   // entry shape: { id, file, isVideo, status, url, error, isPrimary }
   const [uploads, setUploads] = useState([]);
@@ -621,6 +796,14 @@ function ImageUploadStep({ productId, productName, onCreateAnother }) {
         >
           Create another product
         </button>
+        <button
+          type="button"
+          onClick={onGoToDashboard}
+          disabled={busy}
+          className="px-5 py-2 rounded-full text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 hover:bg-gray-200 transition-colors disabled:opacity-50"
+        >
+          Finish & Go to Dashboard
+        </button>
       </div>
     </div>
   );
@@ -673,7 +856,7 @@ const EMPTY_FORM = {
   is_active: true,
 };
 
-function CreateProductTab() {
+function CreateProductTab({ onGoToDashboard }) {
   // ── Wizard state ─────────────────────────────────────────────────────────
   const [step, setStep] = useState(1); // 1 | 2
   const [created, setCreated] = useState(null); // { id, name }
@@ -818,6 +1001,10 @@ function CreateProductTab() {
           productId={created.id}
           productName={created.name}
           onCreateAnother={handleCreateAnother}
+          onGoToDashboard={() => {
+            handleCreateAnother();
+            if (onGoToDashboard) onGoToDashboard();
+          }}
         />
       </div>
     );
@@ -1891,7 +2078,7 @@ export default function SellerDashboard() {
           <TabBar active={activeTab} onChange={setActiveTab} />
 
           {activeTab === "Products" && <ProductsTab />}
-          {activeTab === "Create Product" && <CreateProductTab />}
+          {activeTab === "Create Product" && <CreateProductTab onGoToDashboard={() => setActiveTab("Products")} />}
           {activeTab === "Brands" && <BrandsTab />}
           {activeTab === "Q&A" && <QATab />}
           {activeTab === "Orders" && <SellerOrdersTab />}
