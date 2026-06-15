@@ -82,14 +82,15 @@ function BuyerRoute({ children }) {
  * SellerRoute — accessible only to authenticated sellers.
  */
 function SellerRoute({ children }) {
-  const { isAuthenticated, isSeller, authReady } = useAuth()
+  const { isAuthenticated, authReady } = useAuth()
   const location = useLocation()
 
   if (!authReady) return <AuthLoadingScreen />
   if (!isAuthenticated) {
     return <Navigate to={`/login?next=${encodeURIComponent(location.pathname)}`} replace />
   }
-  if (!isSeller) return <Navigate to="/" replace />
+  
+  // We don't block buyers here because SellerDashboard handles rendering the registration form.
   return children
 }
 
