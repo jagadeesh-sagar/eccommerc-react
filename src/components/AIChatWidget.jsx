@@ -50,15 +50,104 @@ function formatPrice(val) {
   return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 0 })
 }
 
-function formatMarkdownText(text) {
-  if (!text) return "";
-  const parts = text.split(/(\*\*.*?\*\*)/g);
-  return parts.map((part, index) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={index} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+// ─── Full Markdown Renderer ────────────────────────────────────────────────────
+// Handles: ### ## headings, **bold**, *italic*, [link](url), ![img](url),
+// --- dividers, numbered lists, bullet lists, plain newlines
+
+function renderInline(text, key = 0) {
+  // Split on bold, italic, link, image
+  const pattern = /(!\[([^\]]*?)\]\(([^)]+?)\)|\[([^\]]+?)\]\(([^)]+?)\)|\*\*([^*]+?)\*\*|\*([^*]+?)\*)/g
+  const parts = []
+  let last = 0, match, idx = 0
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > last) parts.push(text.slice(last, match.index))
+    const full = match[0]
+    if (full.startsWith('![')) {
+      // image — skip rendering in chat bubbles (show alt text instead)
+      parts.push(<span key={idx++} className="italic text-gray-400">[image: {match[2]}]</span>)
+    } else if (full.startsWith('[')) {
+      parts.push(<a key={idx++} href={match[5]} target="_blank" rel="noreferrer" className="text-blue-600 underline hover:text-blue-800">{match[4]}</a>)
+    } else if (full.startsWith('**')) {
+      parts.push(<strong key={idx++} className="font-semibold text-gray-900">{match[6]}</strong>)
+    } else if (full.startsWith('*')) {
+      parts.push(<em key={idx++} className="italic">{match[7]}</em>)
     }
-    return part;
-  });
+    last = match.index + full.length
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return parts.length === 1 && typeof parts[0] === 'string' ? parts[0] : <span key={key}>{parts}</span>
+}
+
+function renderMarkdown(text) {
+  if (!text) return null
+  const lines = text.split('\n')
+  const elements = []
+  let listItems = []
+  let listType = null // 'ul' | 'ol'
+  let elemIdx = 0
+
+  function flushList() {
+    if (!listItems.length) return
+    if (listType === 'ol') {
+      elements.push(<ol key={elemIdx++} className="list-decimal list-outside pl-5 my-1 space-y-0.5">{listItems}</ol>)
+    } else {
+      elements.push(<ul key={elemIdx++} className="list-disc list-outside pl-5 my-1 space-y-0.5">{listItems}</ul>)
+    }
+    listItems = []; listType = null
+  }
+
+  lines.forEach((raw, i) => {
+    const line = raw
+    // Horizontal rule
+    if (/^[-*_]{3,}$/.test(line.trim())) {
+      flushList()
+      elements.push(<hr key={elemIdx++} className="my-2 border-gray-200" />)
+      return
+    }
+    // H3
+    if (line.startsWith('### ')) {
+      flushList()
+      elements.push(<h3 key={elemIdx++} className="text-sm font-bold text-gray-900 mt-2 mb-0.5">{renderInline(line.slice(4))}</h3>)
+      return
+    }
+    // H2
+    if (line.startsWith('## ')) {
+      flushList()
+      elements.push(<h2 key={elemIdx++} className="text-sm font-bold text-gray-900 mt-2 mb-0.5">{renderInline(line.slice(3))}</h2>)
+      return
+    }
+    // H1
+    if (line.startsWith('# ')) {
+      flushList()
+      elements.push(<h1 key={elemIdx++} className="text-base font-bold text-gray-900 mt-2 mb-1">{renderInline(line.slice(2))}</h1>)
+      return
+    }
+    // Numbered list
+    const olMatch = line.match(/^(\d+)\. (.+)/)
+    if (olMatch) {
+      if (listType !== 'ol') { flushList(); listType = 'ol' }
+      listItems.push(<li key={listItems.length} className="text-sm text-gray-800">{renderInline(olMatch[2])}</li>)
+      return
+    }
+    // Bullet list (-, *, +)
+    const ulMatch = line.match(/^[-*+] (.+)/)
+    if (ulMatch) {
+      if (listType !== 'ul') { flushList(); listType = 'ul' }
+      listItems.push(<li key={listItems.length} className="text-sm text-gray-800">{renderInline(ulMatch[1])}</li>)
+      return
+    }
+    // Empty line → paragraph break
+    if (line.trim() === '') {
+      flushList()
+      elements.push(<div key={elemIdx++} className="h-1" />)
+      return
+    }
+    // Normal paragraph
+    flushList()
+    elements.push(<p key={elemIdx++} className="text-sm text-gray-800 leading-relaxed">{renderInline(line)}</p>)
+  })
+  flushList()
+  return <>{elements}</>
 }
 
 let _msgCounter = 0
@@ -274,9 +363,9 @@ function AssistantBubble({ message, isCurrentlyStreaming }) {
             return (
               <div
                 key={i}
-                className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm text-gray-800 leading-relaxed shadow-sm whitespace-pre-wrap"
+                className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm"
               >
-                {formatMarkdownText(part.content)}
+                {renderMarkdown(part.content)}
                 {/* Blinking cursor while this is the last text part and still streaming */}
                 {isCurrentlyStreaming && i === message.parts.length - 1 && part.type === 'text' && (
                   <span className="inline-block w-0.5 h-3.5 bg-gray-400 ml-0.5 align-middle animate-pulse" />
@@ -339,6 +428,13 @@ export default function AIChatWidget() {
   const [streaming, setStreaming] = useState(false)
   const [inputText, setInputText] = useState('')
 
+  // ── Resizable panel state ──────────────────────────────────────────────────
+  const DEFAULT_W = Math.min(480, Math.floor(window.innerWidth * 0.38))
+  const DEFAULT_H = Math.min(700, Math.floor(window.innerHeight * 0.78))
+  const [panelW, setPanelW] = useState(DEFAULT_W)
+  const [panelH, setPanelH] = useState(DEFAULT_H)
+  const resizingRef = useRef(null) // { startX, startY, startW, startH }
+
   const bottomRef     = useRef(null)
   const inputRef      = useRef(null)
   const abortRef      = useRef(null)   // AbortController for current SSE fetch
@@ -361,6 +457,32 @@ export default function AIChatWidget() {
   useEffect(() => {
     return () => abortRef.current?.abort()
   }, [])
+
+  // ── Drag-to-resize logic ───────────────────────────────────────────────────
+  function startResize(e) {
+    e.preventDefault()
+    resizingRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startW: panelW,
+      startH: panelH,
+    }
+    const onMove = (ev) => {
+      const dx = resizingRef.current.startX - ev.clientX // drag left = wider
+      const dy = resizingRef.current.startY - ev.clientY // drag up  = taller
+      const newW = Math.max(320, Math.min(window.innerWidth * 0.7, resizingRef.current.startW + dx))
+      const newH = Math.max(300, Math.min(window.innerHeight * 0.92, resizingRef.current.startH + dy))
+      setPanelW(Math.round(newW))
+      setPanelH(Math.round(newH))
+    }
+    const onUp = () => {
+      resizingRef.current = null
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
 
   // ── handleSseEvent — updates the current assistant message ────────────────
   const handleSseEvent = useCallback((evt, assistantId) => {
@@ -492,21 +614,26 @@ export default function AIChatWidget() {
       {/* ─────────────────── Chat panel ──────────────────────────── */}
       {isOpen && (
         <div
+          style={{ width: panelW, height: panelH }}
           className={[
-            // Positioning: above button, fixed
             'fixed z-[9998]',
-            // Desktop: occupying 30-40% width, anchored bottom-left above trigger
             'bottom-[84px] left-6',
-            'w-[calc(100vw-3rem)] sm:w-[400px] md:w-[450px] lg:w-[35vw] lg:min-w-[400px] lg:max-w-[500px]',
-            // Height: full-ish on mobile, fixed on desktop
-            'h-[calc(100dvh-100px)] sm:h-[600px] md:h-[680px] lg:h-[75vh]',
-            // Card styling
             'bg-white rounded-2xl shadow-2xl border border-gray-200',
             'flex flex-col overflow-hidden',
           ].join(' ')}
           role="dialog"
           aria-label="AI Shopping Assistant"
         >
+          {/* ── Resize handle — drag the top-right corner ─── */}
+          <div
+            onMouseDown={startResize}
+            title="Drag to resize"
+            className="absolute top-0 right-0 w-6 h-6 cursor-nwse-resize z-10 flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity"
+          >
+            <svg viewBox="0 0 10 10" className="w-3 h-3 text-gray-400" fill="currentColor">
+              <path d="M0 10 L10 0 L10 10 Z" opacity="0.5"/>
+            </svg>
+          </div>
           {/* ── Panel header ──────────────────────────────────────── */}
           <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#131921] to-[#232f3e] flex-shrink-0">
             <div className="flex items-center gap-2.5">
