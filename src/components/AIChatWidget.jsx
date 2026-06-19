@@ -21,7 +21,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth }    from '../context/AuthContext'
 import { useCart }    from '../context/CartContext'
-import { getCSRF }   from '../utils/csrf'
+import client         from '../api/client'
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -413,28 +413,13 @@ export default function AIChatWidget() {
     streamingIdRef.current = assistantId
 
     try {
-      const csrf = getCSRF()
-      const response = await fetch(`${API_BASE}/user/ai/`, {
-        method:      'POST',
-        credentials: 'include',
-        signal:      abortRef.current.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          Accept:         'application/json',
-          ...(csrf ? { 'X-CSRFToken': csrf } : {}),
-        },
-        // Backend expects { prompt: "..." }
-        body: JSON.stringify({ prompt: trimmed }),
-      })
+      const response = await client.post('/user/ai/', 
+        { prompt: trimmed },
+        { signal: abortRef.current.signal }
+      )
 
-      const data = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        const msg = data?.error ?? `Server error ${response.status}`
-        throw new Error(msg)
-      }
-
-      const replyText = data?.response ?? 'No response received.'
+      const data = response.data || {}
+      const replyText = data.response ?? 'No response received.'
 
       // Render the reply as a single text part
       setMessages((prev) => {
@@ -451,7 +436,9 @@ export default function AIChatWidget() {
       if (!isOpen) setUnread((u) => u + 1)
 
     } catch (err) {
-      if (err.name === 'AbortError') return
+      if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') return
+
+      const errorMsg = err.response?.data?.error ?? err.response?.data?.detail ?? err.message ?? 'Connection failed. Please try again.'
 
       setMessages((prev) => {
         const idx = prev.findLastIndex((m) => m.id === assistantId)
@@ -459,7 +446,7 @@ export default function AIChatWidget() {
         const updated = [...prev]
         updated[idx] = {
           ...updated[idx],
-          parts: [{ type: 'error', content: err.message || 'Connection failed. Please try again.' }],
+          parts: [{ type: 'error', content: errorMsg }],
         }
         return updated
       })
