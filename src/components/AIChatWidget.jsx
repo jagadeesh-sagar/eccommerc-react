@@ -54,6 +54,17 @@ function formatPrice(val) {
 // Handles: ### ## headings, **bold**, *italic*, [link](url), ![img](url),
 // --- dividers, numbered lists, bullet lists, plain newlines
 
+// Small external link icon shown next to every link
+function ExternalLinkIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+      style={{ display: 'inline', width: 11, height: 11, marginLeft: 2, verticalAlign: 'middle', flexShrink: 0 }}>
+      <path d="M6.22 8.72a.75.75 0 0 0 1.06 1.06l5.22-5.22v1.69a.75.75 0 0 0 1.5 0v-3.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0 0 1.5h1.69L6.22 8.72Z" />
+      <path d="M3.5 6.75c0-.69.56-1.25 1.25-1.25H7A.75.75 0 0 0 7 4H4.75A2.75 2.75 0 0 0 2 6.75v4.5A2.75 2.75 0 0 0 4.75 14h4.5A2.75 2.75 0 0 0 12 11.25V9a.75.75 0 0 0-1.5 0v2.25c0 .69-.56 1.25-1.25 1.25h-4.5c-.69 0-1.25-.56-1.25-1.25v-4.5Z" />
+    </svg>
+  )
+}
+
 function renderInline(text, key = 0) {
   // Pattern order matters: image before link, then bold/italic, then bare URL
   const pattern = /(!\[([^\]]*?)\]\(([^)]+?)\)|\[([^\]]+?)\]\(([^)]+?)\)|\*\*([^*]+?)\*\*|\*([^*]+?)\*)|(https?:\/\/[^\s<>"'`)\]]+)/g
@@ -79,11 +90,30 @@ function renderInline(text, key = 0) {
         </span>
       )
     } else if (full.startsWith('[')) {
-      // Markdown link
+      // Markdown link — prominent highlight
       parts.push(
-        <a key={idx++} href={match[5]} target="_blank" rel="noreferrer"
-          className="text-[#007185] underline hover:text-[#c7511f] break-all">
-          {match[4]}
+        <a
+          key={idx++}
+          href={match[5]}
+          target="_blank"
+          rel="noreferrer noopener"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            color: '#1a56db',
+            fontWeight: 600,
+            textDecoration: 'underline',
+            textDecorationColor: '#93c5fd',
+            textUnderlineOffset: '3px',
+            backgroundColor: '#eff6ff',
+            borderRadius: '4px',
+            padding: '1px 4px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 2,
+            wordBreak: 'break-all',
+          }}
+        >
+          {match[4]}<ExternalLinkIcon />
         </a>
       )
     } else if (full.startsWith('**')) {
@@ -91,12 +121,38 @@ function renderInline(text, key = 0) {
     } else if (full.startsWith('*')) {
       parts.push(<em key={idx++} className="italic">{match[7]}</em>)
     } else if (match[8]) {
-      // Bare URL — make it a clickable link
+      // Bare URL — prominent highlight
       const url = match[8]
+      // Shorten display: show domain + ellipsis if too long
+      let displayUrl = url
+      try {
+        const u = new URL(url)
+        displayUrl = u.hostname + (u.pathname.length > 20 ? u.pathname.slice(0, 20) + '…' : u.pathname)
+      } catch {}
       parts.push(
-        <a key={idx++} href={url} target="_blank" rel="noreferrer"
-          className="text-[#007185] underline hover:text-[#c7511f] break-all">
-          {url}
+        <a
+          key={idx++}
+          href={url}
+          target="_blank"
+          rel="noreferrer noopener"
+          onClick={(e) => e.stopPropagation()}
+          title={url}
+          style={{
+            color: '#1a56db',
+            fontWeight: 600,
+            textDecoration: 'underline',
+            textDecorationColor: '#93c5fd',
+            textUnderlineOffset: '3px',
+            backgroundColor: '#eff6ff',
+            borderRadius: '4px',
+            padding: '1px 4px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 2,
+            wordBreak: 'break-all',
+          }}
+        >
+          {displayUrl}<ExternalLinkIcon />
         </a>
       )
     }
