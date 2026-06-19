@@ -50,6 +50,17 @@ function formatPrice(val) {
   return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 0 })
 }
 
+function formatMarkdownText(text) {
+  if (!text) return "";
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={index} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 let _msgCounter = 0
 function nextId() { return ++_msgCounter }
 
@@ -263,9 +274,9 @@ function AssistantBubble({ message, isCurrentlyStreaming }) {
             return (
               <div
                 key={i}
-                className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm text-gray-800 leading-relaxed shadow-sm"
+                className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm text-gray-800 leading-relaxed shadow-sm whitespace-pre-wrap"
               >
-                {part.content}
+                {formatMarkdownText(part.content)}
                 {/* Blinking cursor while this is the last text part and still streaming */}
                 {isCurrentlyStreaming && i === message.parts.length - 1 && part.type === 'text' && (
                   <span className="inline-block w-0.5 h-3.5 bg-gray-400 ml-0.5 align-middle animate-pulse" />
@@ -311,7 +322,7 @@ function AssistantBubble({ message, isCurrentlyStreaming }) {
 function UserBubble({ message }) {
   return (
     <div className="flex justify-end">
-      <div className="max-w-[75%] bg-[#1a73e8] text-white rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm leading-relaxed shadow-sm">
+      <div className="max-w-[75%] bg-[#1a73e8] text-white rounded-2xl rounded-br-sm px-3.5 py-2.5 text-sm leading-relaxed shadow-sm whitespace-pre-wrap">
         {message.content}
       </div>
     </div>
@@ -484,11 +495,11 @@ export default function AIChatWidget() {
           className={[
             // Positioning: above button, fixed
             'fixed z-[9998]',
-            // Desktop: 380×520, anchored bottom-right above trigger
-            'bottom-[84px] right-6',
-            'w-[calc(100vw-3rem)] sm:w-[380px]',
+            // Desktop: occupying 30-40% width, anchored bottom-left above trigger
+            'bottom-[84px] left-6',
+            'w-[calc(100vw-3rem)] sm:w-[400px] md:w-[450px] lg:w-[35vw] lg:min-w-[400px] lg:max-w-[500px]',
             // Height: full-ish on mobile, fixed on desktop
-            'h-[calc(100dvh-100px)] sm:h-[520px]',
+            'h-[calc(100dvh-100px)] sm:h-[600px] md:h-[680px] lg:h-[75vh]',
             // Card styling
             'bg-white rounded-2xl shadow-2xl border border-gray-200',
             'flex flex-col overflow-hidden',
@@ -612,7 +623,7 @@ export default function AIChatWidget() {
         aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
         aria-expanded={isOpen}
         className={[
-          'fixed bottom-6 right-6 z-[9999]',
+          'fixed bottom-6 left-6 z-[9999]',
           'flex items-center gap-2 pl-3.5 pr-4 h-12 rounded-full shadow-xl',
           'font-semibold text-sm transition-all duration-200',
           isOpen
