@@ -55,22 +55,50 @@ function formatPrice(val) {
 // --- dividers, numbered lists, bullet lists, plain newlines
 
 function renderInline(text, key = 0) {
-  // Split on bold, italic, link, image
-  const pattern = /(!\[([^\]]*?)\]\(([^)]+?)\)|\[([^\]]+?)\]\(([^)]+?)\)|\*\*([^*]+?)\*\*|\*([^*]+?)\*)/g
+  // Pattern order matters: image before link, then bold/italic, then bare URL
+  const pattern = /(!\[([^\]]*?)\]\(([^)]+?)\)|\[([^\]]+?)\]\(([^)]+?)\)|\*\*([^*]+?)\*\*|\*([^*]+?)\*)|(https?:\/\/[^\s<>"'`)\]]+)/g
   const parts = []
   let last = 0, match, idx = 0
   while ((match = pattern.exec(text)) !== null) {
     if (match.index > last) parts.push(text.slice(last, match.index))
     const full = match[0]
     if (full.startsWith('![')) {
-      // image — skip rendering in chat bubbles (show alt text instead)
-      parts.push(<span key={idx++} className="italic text-gray-400">[image: {match[2]}]</span>)
+      // Markdown image — render as actual <img>
+      const alt = match[2]
+      const src = match[3]
+      parts.push(
+        <span key={idx++} className="block my-1">
+          <img
+            src={src}
+            alt={alt}
+            className="max-w-full rounded-lg border border-gray-100 shadow-sm"
+            style={{ maxHeight: 200, objectFit: 'contain' }}
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+          {alt && <span className="block text-[10px] text-gray-400 mt-0.5">{alt}</span>}
+        </span>
+      )
     } else if (full.startsWith('[')) {
-      parts.push(<a key={idx++} href={match[5]} target="_blank" rel="noreferrer" className="text-blue-600 underline hover:text-blue-800">{match[4]}</a>)
+      // Markdown link
+      parts.push(
+        <a key={idx++} href={match[5]} target="_blank" rel="noreferrer"
+          className="text-[#007185] underline hover:text-[#c7511f] break-all">
+          {match[4]}
+        </a>
+      )
     } else if (full.startsWith('**')) {
       parts.push(<strong key={idx++} className="font-semibold text-gray-900">{match[6]}</strong>)
     } else if (full.startsWith('*')) {
       parts.push(<em key={idx++} className="italic">{match[7]}</em>)
+    } else if (match[8]) {
+      // Bare URL — make it a clickable link
+      const url = match[8]
+      parts.push(
+        <a key={idx++} href={url} target="_blank" rel="noreferrer"
+          className="text-[#007185] underline hover:text-[#c7511f] break-all">
+          {url}
+        </a>
+      )
     }
     last = match.index + full.length
   }
@@ -96,12 +124,32 @@ function renderMarkdown(text) {
     listItems = []; listType = null
   }
 
-  lines.forEach((raw, i) => {
+  lines.forEach((raw) => {
     const line = raw
     // Horizontal rule
     if (/^[-*_]{3,}$/.test(line.trim())) {
       flushList()
       elements.push(<hr key={elemIdx++} className="my-2 border-gray-200" />)
+      return
+    }
+    // Standalone image line  e.g.  ![Galaxy S25](https://...)
+    const standaloneImg = line.trim().match(/^!\[([^\]]*?)\]\(([^)]+?)\)$/)
+    if (standaloneImg) {
+      flushList()
+      const alt = standaloneImg[1]
+      const src = standaloneImg[2]
+      elements.push(
+        <div key={elemIdx++} className="my-2">
+          <img
+            src={src}
+            alt={alt}
+            className="max-w-full rounded-xl border border-gray-100 shadow-sm"
+            style={{ maxHeight: 220, objectFit: 'contain' }}
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+          {alt && <p className="text-[10px] text-gray-400 mt-0.5 text-center">{alt}</p>}
+        </div>
+      )
       return
     }
     // H3
