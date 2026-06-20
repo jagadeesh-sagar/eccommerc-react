@@ -1594,7 +1594,7 @@ function BrandsTab() {
             <div key={i} className="h-14 bg-gray-100 rounded animate-pulse" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : paginated.length === 0 ? (
         <p className="text-sm text-gray-500 italic">
           {search ? `No brands matching "${search}".` : "No brands yet. Add one above."}
         </p>
