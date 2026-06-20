@@ -17,6 +17,182 @@ import client from "../api/client";
 import OrderChatPanel from "../components/OrderChatPanel";
 import { useAuth } from "../context/AuthContext";
 import SellerRegistrationForm from "../components/SellerRegistrationForm";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SearchableSelect — dropdown with live search for brands / categories
+// Props: items [{id, name}], value (name string), onChange(name), placeholder
+// ─────────────────────────────────────────────────────────────────────────────
+function SearchableSelect({ items = [], searchUrl, value, onChange, placeholder = "Search…", error }) {
+  const [open, setOpen]     = useState(false);
+  const [query, setQuery]   = useState("");
+  const wrapRef             = useRef(null);
+
+  // Dynamic search/pagination states
+  const [dynamicItems, setDynamicItems] = useState([]);
+  const [loading, setLoading]           = useState(false);
+  const [nextPage, setNextPage]         = useState(1);
+  const [hasMore, setHasMore]           = useState(false);
+
+  // Determine active item list
+  const activeItems = searchUrl ? dynamicItems : items;
+
+  // Client-side filtering when searchUrl is not used
+  const filtered = !searchUrl && query.trim()
+    ? activeItems.filter((i) => i.name.toLowerCase().includes(query.toLowerCase()))
+    : activeItems;
+
+  const selectedLabel = value
+    ? (activeItems.find((i) => i.name === value)?.name ?? value)
+    : null;
+
+  // Fetch function for searchUrl
+  const fetchDynamicItems = useCallback((searchQuery, pageNum, append = false) => {
+    if (!searchUrl) return;
+    setLoading(true);
+    client.get(searchUrl, { params: { search: searchQuery.trim(), page: pageNum } })
+      .then(({ data }) => {
+        let results = [];
+        let nextUrl = null;
+        if (Array.isArray(data)) {
+          results = data;
+        } else if (Array.isArray(data?.results)) {
+          results = data.results;
+          nextUrl = data.next;
+        }
+        
+        setDynamicItems(prev => append ? [...prev, ...results] : results);
+        setHasMore(!!nextUrl);
+        setNextPage(pageNum + 1);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [searchUrl]);
+
+  // Query change debouncing
+  useEffect(() => {
+    if (!open || !searchUrl) return;
+    const delayDebounceFn = setTimeout(() => {
+      fetchDynamicItems(query, 1, false);
+    }, 250);
+    return () => clearTimeout(delayDebounceFn);
+  }, [open, query, searchUrl, fetchDynamicItems]);
+
+  // Fetch initial page on open
+  useEffect(() => {
+    if (open && searchUrl && dynamicItems.length === 0) {
+      fetchDynamicItems("", 1, false);
+    }
+  }, [open, searchUrl, dynamicItems.length, fetchDynamicItems]);
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false); setQuery("");
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  function pick(name) {
+    onChange(name); setOpen(false); setQuery("");
+  }
+
+  const border = error ? "border-red-400 ring-1 ring-red-300" : "border-gray-300";
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      {/* Trigger button */}
+      <button
+        type="button"
+        onClick={() => { setOpen((o) => !o); setTimeout(() => wrapRef.current?.querySelector("input")?.focus(), 50); }}
+        className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded border ${border} bg-white text-left transition focus:outline-none focus:ring-2 focus:ring-[#e77600]`}
+      >
+        <span className={selectedLabel ? "text-gray-900" : "text-gray-400"}>
+          {selectedLabel ?? placeholder}
+        </span>
+        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" />
+        </svg>
+      </button>
+
+      {/* Dropdown panel */}
+      {open && (
+        <div
+          style={{
+            position: "absolute", zIndex: 9999, top: "calc(100% + 4px)",
+            left: 0, right: 0,
+            background: "#fff", border: "1px solid #d1d5db",
+            borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+            overflow: "hidden",
+          }}
+        >
+          {/* Search box */}
+          <div style={{ padding: "8px 8px 4px" }}>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Type to search…"
+              style={{
+                width: "100%", padding: "6px 10px", fontSize: 13,
+                border: "1px solid #d1d5db", borderRadius: 6, outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+          {/* Option list */}
+          <div style={{ maxHeight: 220, overflowY: "auto" }}>
+            {(!searchUrl ? filtered.length === 0 : activeItems.length === 0) && !loading ? (
+              <p style={{ padding: "10px 12px", fontSize: 12, color: "#9ca3af" }}>No results</p>
+            ) : (
+              <>
+                {(!searchUrl ? filtered : activeItems).map((item) => (
+                  <button
+                    key={item.id ?? item.name}
+                    type="button"
+                    onClick={() => pick(item.name)}
+                    style={{
+                      display: "block", width: "100%", textAlign: "left",
+                      padding: "8px 12px", fontSize: 13, cursor: "pointer",
+                      background: item.name === value ? "#fff7ed" : "transparent",
+                      color: item.name === value ? "#c2410c" : "#111827",
+                      fontWeight: item.name === value ? 600 : 400,
+                      border: "none",
+                    }}
+                    onMouseEnter={(e) => { if (item.name !== value) e.currentTarget.style.background = "#f9fafb"; }}
+                    onMouseLeave={(e) => { if (item.name !== value) e.currentTarget.style.background = "transparent"; }}
+                  >
+                    {item.name}
+                  </button>
+                ))}
+                {loading && (
+                  <p style={{ padding: "8px 12px", fontSize: 12, color: "#9ca3af" }} className="animate-pulse">Loading…</p>
+                )}
+                {hasMore && !loading && (
+                  <button
+                    type="button"
+                    onClick={() => fetchDynamicItems(query, nextPage, true)}
+                    style={{
+                      display: "block", width: "100%", textAlign: "center",
+                      padding: "8px 12px", fontSize: 12, cursor: "pointer",
+                      background: "#f9fafb", color: "#007185", fontWeight: 500,
+                      border: "none", borderTop: "1px solid #e5e7eb"
+                    }}
+                  >
+                    Load more
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Tiny shared helpers
 // ─────────────────────────────────────────────────────────────────────────────
@@ -517,6 +693,22 @@ function ImageUploadStep({ productId, productName, onCreateAnother, onGoToDashbo
   const [uploads, setUploads] = useState([]);
   const [busy, setBusy] = useState(false);
 
+  /**
+   * Sanitize a filename before sending to the S3 pre-sign endpoint.
+   * S3 object keys with spaces or special chars break pre-signed PUT URLs
+   * because the key is URL-encoded in the signature but sent raw in the PUT.
+   * Replace every unsafe character with an underscore.
+   */
+  function sanitizeFilename(file) {
+    const safeName = file.name
+      .replace(/\s+/g, '_')          // spaces → underscore
+      .replace(/[%#+?&=<>{}|\\^~\[\]`]/g, '_') // other S3-unsafe chars
+      .replace(/_+/g, '_')           // collapse consecutive underscores
+      .replace(/^_|_$/g, '')         // strip leading/trailing underscores
+    if (safeName === file.name) return file  // no change needed
+    return new File([file], safeName, { type: file.type, lastModified: file.lastModified })
+  }
+
   function patch(id, delta) {
     setUploads((prev) =>
       prev.map((u) => (u.id === id ? { ...u, ...delta } : u)),
@@ -579,9 +771,12 @@ function ImageUploadStep({ productId, productName, onCreateAnother, onGoToDashbo
   }
 
   async function handleFiles(e) {
-    const files = Array.from(e.target.files ?? []);
-    if (!files.length) return;
+    const rawFiles = Array.from(e.target.files ?? []);
+    if (!rawFiles.length) return;
     if (fileRef.current) fileRef.current.value = "";
+
+    // Sanitize filenames — replace spaces and S3-unsafe chars with "_"
+    const files = rawFiles.map(sanitizeFilename);
 
     const newEntries = files.map((file) => ({
       id: Math.random().toString(36).slice(2),
@@ -879,6 +1074,7 @@ function CreateProductTab({ onGoToDashboard }) {
   const [brands, setBrands] = useState([]);
 
   useEffect(() => {
+    // fetch ALL categories and brands (pagination disabled on backend)
     client.get("/user/product/categories/").then(({ data }) => {
       setCategories(
         Array.isArray(data)
@@ -1088,33 +1284,25 @@ function CreateProductTab({ onGoToDashboard }) {
           </Field>
 
           <Field label="Category" error={errors.category} required>
-            <select
-              className={inputCls(errors.category) + " bg-white"}
+            <SearchableSelect
+              searchUrl="/user/product/categories/"
+              items={categories}
               value={form.category}
-              onChange={(e) => set("category", e.target.value)}
-            >
-              <option value="">— Select category —</option>
-              {categories.map((c) => (
-                <option key={c.name} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => set("category", val)}
+              placeholder="— Select category —"
+              error={errors.category}
+            />
           </Field>
 
           <Field label="Brand" error={errors.brand} required>
-            <select
-              className={inputCls(errors.brand) + " bg-white"}
+            <SearchableSelect
+              searchUrl="/user/brand/"
+              items={brands}
               value={form.brand}
-              onChange={(e) => set("brand", e.target.value)}
-            >
-              <option value="">— Select brand —</option>
-              {brands.map((b) => (
-                <option key={b.name ?? b.id} value={b.name}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => set("brand", val)}
+              placeholder="— Select brand —"
+              error={errors.brand}
+            />
           </Field>
 
           {/* is_active toggle */}
@@ -1225,40 +1413,51 @@ function CreateProductTab({ onGoToDashboard }) {
 const EMPTY_BRAND = { name: "", description: "", logo: "", is_active: true };
 
 function BrandsTab() {
-  const [brands, setBrands] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(EMPTY_BRAND);
-  const [errors, setErrors] = useState({});
+  const BACKEND_PAGE_SIZE = 2;
+  const [brands, setBrands]       = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading]     = useState(true);
+  const [showForm, setShowForm]   = useState(false);
+  const [form, setForm]           = useState(EMPTY_BRAND);
+  const [errors, setErrors]       = useState({});
   const [globalErr, setGlobalErr] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState("");
+  const [saving, setSaving]       = useState(false);
+  const [success, setSuccess]     = useState("");
+  const [search, setSearch]       = useState("");
+  const [page, setPage]           = useState(1);
 
   const fetchBrands = useCallback(() => {
     setLoading(true);
     client
-      .get("/user/brand/")
+      .get("/user/brand/", { params: { page, search: search.trim() } })
       .then(({ data }) => {
-        setBrands(
-          Array.isArray(data)
-            ? data
-            : Array.isArray(data?.results)
-              ? data.results
-              : [],
-        );
+        if (Array.isArray(data)) {
+          setBrands(data);
+          setTotalCount(data.length);
+        } else if (Array.isArray(data?.results)) {
+          setBrands(data.results);
+          setTotalCount(data.count ?? data.results.length);
+        } else {
+          setBrands([]);
+          setTotalCount(0);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [page, search]);
 
-  useEffect(() => {
-    fetchBrands();
-  }, [fetchBrands]);
+  useEffect(() => { fetchBrands(); }, [fetchBrands]);
+  // reset to page 1 when search changes
+  useEffect(() => { setPage(1); }, [search]);
 
   function setField(f, v) {
     setForm((p) => ({ ...p, [f]: v }));
     setErrors((e) => ({ ...e, [f]: "" }));
   }
+
+  // server-side filter + paginate
+  const totalPages  = Math.max(1, Math.ceil(totalCount / BACKEND_PAGE_SIZE));
+  const paginated   = brands;
 
   async function handleSave(e) {
     e.preventDefault();
@@ -1293,24 +1492,28 @@ function BrandsTab() {
       {success && (
         <div className="px-4 py-2.5 bg-green-50 border border-green-300 rounded text-sm text-green-700 flex justify-between">
           <span>✓ {success}</span>
-          <button
-            onClick={() => setSuccess("")}
-            className="text-green-500 hover:text-green-700"
-          >
-            ×
-          </button>
+          <button onClick={() => setSuccess("")} className="text-green-500 hover:text-green-700">×</button>
         </div>
       )}
 
-      {/* Add brand button */}
-      {!showForm && (
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 text-sm text-[#007185] hover:text-[#c7511f] font-medium transition-colors"
-        >
-          <span className="text-lg leading-none">+</span> Add new brand
-        </button>
-      )}
+      {/* Search + Add */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search brands…"
+          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e77600]"
+        />
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-[#a88734] bg-gradient-to-b from-[#f7dfa5] to-[#f0c14b] text-gray-900 font-medium hover:from-[#f5d78e] transition-all"
+          >
+            <span className="text-lg leading-none">+</span> Add brand
+          </button>
+        )}
+      </div>
 
       {/* Add brand form */}
       {showForm && (
@@ -1391,13 +1594,13 @@ function BrandsTab() {
             <div key={i} className="h-14 bg-gray-100 rounded animate-pulse" />
           ))}
         </div>
-      ) : brands.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <p className="text-sm text-gray-500 italic">
-          No brands yet. Add one above.
+          {search ? `No brands matching "${search}".` : "No brands yet. Add one above."}
         </p>
       ) : (
         <div className="space-y-2">
-          {brands.map((b, i) => (
+          {paginated.map((b, i) => (
             <div
               key={b.id ?? i}
               className="flex items-center gap-4 px-4 py-3 bg-white border border-gray-200 rounded-lg"
@@ -1434,9 +1637,33 @@ function BrandsTab() {
           ))}
         </div>
       )}
+
+      {/* Pagination controls */}
+      {!loading && totalPages > 1 && (
+        <div className="flex items-center justify-between pt-1">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-3 py-1.5 text-xs rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            ← Previous
+          </button>
+          <span className="text-xs text-gray-500">
+            Page {page} of {totalPages} &nbsp;·&nbsp; {totalCount} brand{totalCount !== 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-3 py-1.5 text-xs rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ── Tab 4: Q&A ────────────────────────────────────────────────────────────────

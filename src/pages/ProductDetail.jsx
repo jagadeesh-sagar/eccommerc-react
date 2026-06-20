@@ -12,7 +12,7 @@
  * API: GET /user/product/detail/:id  (requires IsAuthenticated)
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import Header from '../components/Header'
 import client from '../api/client'
@@ -96,6 +96,64 @@ function StarPicker({ value, onChange }) {
   )
 }
 
+function sanitizeFilename(file) {
+  if (!file) return file
+  const safeName = file.name
+    .replace(/\s+/g, '_')          // spaces → underscore
+    .replace(/[%#+?&=<>{}|\\^~\[\]`]/g, '_') // other S3-unsafe chars
+    .replace(/_+/g, '_')           // collapse consecutive underscores
+    .replace(/^_|_$/g, '')         // strip leading/trailing underscores
+  if (safeName === file.name) return file  // no change needed
+  return new File([file], safeName, { type: file.type, lastModified: file.lastModified })
+}
+
+function ShareButton({ productName, showToast }) {
+  const handleShare = async () => {
+    const shareData = {
+      title: productName,
+      text: `Check out ${productName} on our E-commerce store!`,
+      url: window.location.href,
+    }
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData)
+        showToast('Shared successfully!', 'success')
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          copyToClipboard()
+        }
+      }
+    } else {
+      copyToClipboard()
+    }
+  }
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => {
+        showToast('Link copied to clipboard!', 'success')
+      })
+      .catch(() => {
+        showToast('Failed to copy link.', 'error')
+      })
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleShare}
+      className="p-2 text-gray-500 hover:text-[#c7511f] hover:bg-gray-100 rounded-full transition-all border border-gray-200 shadow-sm flex items-center justify-center bg-white"
+      title="Share product"
+      aria-label="Share product"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+      </svg>
+    </button>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Skeleton
 // ─────────────────────────────────────────────────────────────────────────────
@@ -120,7 +178,7 @@ function Skeleton() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Section wrapper (reused for Reviews and Q&A)
+// Section wrapper
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Section({ title, children }) {
@@ -137,57 +195,162 @@ function Section({ title, children }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ReviewCard({ review }) {
+  // Collect all images: new ReviewMedia array OR old review_image field
+  const mediaImages = (review.media ?? []).filter(m => m.media_type === 'image')
+  const mediaVideo  = (review.media ?? []).find(m => m.media_type === 'video')
+
+  // Backward compat: show old-style single image/video if no new media
+  const legacyImage = (!mediaImages.length && review.review_image) ? review.review_image : null
+  const legacyVideo = (!mediaVideo && review.review_video) ? review.review_video : null
+
   return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-white">
-      <div className="flex items-center justify-between mb-1">
-        <StarRating rating={review.rating} />
-        {review.is_verified_purchase && (
-          <span className="text-[11px] font-medium text-[#007600] bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
-            ✓ Verified Purchase
+    <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-2">
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <StarRating rating={review.rating} />
+          {review.is_verified_purchase && (
+            <span className="text-[11px] font-medium text-[#007600] bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+              ✓ Verified Purchase
+            </span>
+          )}
+        </div>
+        {review.created_at && (
+          <span className="text-[11px] text-gray-400">
+            {new Date(review.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
           </span>
         )}
       </div>
+
+      {/* Review text */}
       {review.review_text && (
-        <p className="text-sm text-gray-700 mt-2 leading-relaxed">{review.review_text}</p>
+        <p className="text-sm text-gray-700 leading-relaxed">{review.review_text}</p>
       )}
-      {review.review_image && (
-        <img
-          src={review.review_image}
-          alt="Review"
-          className="mt-2 max-h-32 rounded border border-gray-200 object-cover"
+
+      {/* Images — horizontal scrollable row */}
+      {(mediaImages.length > 0 || legacyImage) && (
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
+          {mediaImages.map((m, i) => (
+            <a key={m.id} href={m.url} target="_blank" rel="noreferrer">
+              <img
+                src={m.url}
+                alt={`Review image ${i + 1}`}
+                className="h-24 w-24 flex-shrink-0 rounded-lg object-cover border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in"
+                onError={e => { e.currentTarget.style.display = 'none' }}
+              />
+            </a>
+          ))}
+          {legacyImage && (
+            <a href={legacyImage} target="_blank" rel="noreferrer">
+              <img
+                src={legacyImage}
+                alt="Review image"
+                className="h-24 w-24 flex-shrink-0 rounded-lg object-cover border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in"
+                onError={e => { e.currentTarget.style.display = 'none' }}
+              />
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* Video */}
+      {(mediaVideo || legacyVideo) && (
+        <video
+          src={mediaVideo?.url ?? legacyVideo}
+          controls
+          className="w-full max-h-48 rounded-lg border border-gray-200 bg-black"
         />
       )}
     </div>
   )
 }
 
+// ─── WriteReviewForm ──────────────────────────────────────────────────────────
+const ACCEPTED_REVIEW_MEDIA = 'image/jpeg,image/png,image/webp,image/avif,video/mp4,video/webm,video/quicktime'
+
 function WriteReviewForm({ productId, onSuccess }) {
-  const [rating, setRating] = useState(0)
-  const [text, setText] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const [rating, setRating]     = useState(0)
+  const [text, setText]         = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
+  const [success, setSuccess]   = useState(false)
+  const [mediaFiles, setMediaFiles] = useState([])   // [{id, file, status, error}]
+  const fileRef = useRef(null)
+
+  const imageCount = mediaFiles.filter(f => !f.file.type.startsWith('video/')).length
+  const videoCount = mediaFiles.filter(f => f.file.type.startsWith('video/')).length
+
+  function addFiles(e) {
+    const picked = Array.from(e.target.files ?? []).map(sanitizeFilename)
+    if (fileRef.current) fileRef.current.value = ''
+    setMediaFiles(prev => {
+      const next = [...prev]
+      for (const file of picked) {
+        const isVid = file.type.startsWith('video/')
+        const imgs  = next.filter(f => !f.file.type.startsWith('video/')).length
+        const vids  = next.filter(f =>  f.file.type.startsWith('video/')).length
+        if (isVid && vids >= 1)  { setError('Only 1 video allowed per review.'); continue }
+        if (!isVid && imgs >= 5) { setError('Maximum 5 images per review.'); continue }
+        next.push({ id: Math.random().toString(36).slice(2), file, status: 'queued', error: null })
+      }
+      return next
+    })
+    setError('')
+  }
+
+  function removeFile(id) {
+    setMediaFiles(prev => prev.filter(f => f.id !== id))
+  }
+
+  function patchFile(id, delta) {
+    setMediaFiles(prev => prev.map(f => f.id === id ? { ...f, ...delta } : f))
+  }
+
+  async function uploadMedia(file, reviewId, order) {
+    const isVideo = file.type.startsWith('video/')
+    const fileType = isVideo ? 'videos' : 'images'
+    const { data: presign } = await client.get('/user/review/media/', {
+      params: { file_name: file.name, file_type: fileType, review_id: reviewId },
+    })
+    const putRes = await fetch(presign.upload_url, {
+      method: 'PUT', body: file, headers: { 'Content-Type': file.type },
+    })
+    if (!putRes.ok) throw new Error(`S3 upload failed (${putRes.status})`)
+    await client.post('/user/review/media/', {
+      review_id: reviewId,
+      url: presign.file_url,
+      media_type: isVideo ? 'video' : 'image',
+      display_order: order,
+    })
+    return presign.file_url
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     if (rating === 0) { setError('Please select a star rating.'); return }
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     try {
-      await client.post(`/user/product/detail/review/?q=${productId}`, {
-        rating,
-        review_text: text,
-      })
+      const { data: reviewData } = await client.post(
+        `/user/product/detail/review/?q=${productId}`,
+        { rating, review_text: text },
+      )
+      const reviewId = reviewData.id
+      for (let i = 0; i < mediaFiles.length; i++) {
+        const entry = mediaFiles[i]
+        patchFile(entry.id, { status: 'uploading' })
+        try {
+          await uploadMedia(entry.file, reviewId, i + 1)
+          patchFile(entry.id, { status: 'done' })
+        } catch (uploadErr) {
+          patchFile(entry.id, { status: 'error', error: uploadErr.message })
+        }
+      }
       setSuccess(true)
-      setRating(0)
-      setText('')
+      setRating(0); setText(''); setMediaFiles([])
       onSuccess?.()
     } catch (err) {
       const data = err.response?.data
-      const msg = data?.non_field_errors?.[0]
-        || data?.detail
-        || data?.error
-        || 'Could not submit review. Try again.'
+      const msg = data?.non_field_errors?.[0] || data?.detail || data?.error || 'Could not submit review.'
       setError(Array.isArray(msg) ? msg[0] : msg)
     } finally {
       setLoading(false)
@@ -203,10 +366,7 @@ function WriteReviewForm({ productId, onSuccess }) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3"
-    >
+    <form onSubmit={handleSubmit} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4">
       <p className="font-semibold text-gray-800 text-sm">Write a customer review</p>
 
       <div>
@@ -223,6 +383,89 @@ function WriteReviewForm({ productId, onSuccess }) {
           placeholder="What did you like or dislike?"
           className="w-full px-3 py-2 text-sm border border-gray-400 rounded outline-none focus:border-[#e77600] focus:ring-[3px] focus:ring-[rgba(228,121,17,0.5)] resize-none"
         />
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-600 mb-1 font-medium">Add photos or video</label>
+        <div className="flex flex-col gap-2">
+          <input
+            type="file"
+            ref={fileRef}
+            onChange={addFiles}
+            multiple
+            accept={ACCEPTED_REVIEW_MEDIA}
+            className="hidden"
+            id="review-media-input"
+          />
+          <label
+            htmlFor="review-media-input"
+            className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded text-sm font-medium bg-white hover:bg-gray-50 text-gray-700 shadow-sm transition-all w-full max-w-[200px]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+            </svg>
+            Choose files
+          </label>
+          <p className="text-[11px] text-gray-500">
+            Up to 5 images, 1 video. Accepted formats: JPG, PNG, WEBP, MP4, WEBM
+          </p>
+        </div>
+
+        {/* Selected files list */}
+        {mediaFiles.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {mediaFiles.map((m) => {
+              const isVideo = m.file.type.startsWith('video/')
+              return (
+                <div key={m.id} className="flex items-center justify-between border border-gray-200 rounded p-2 bg-white text-xs">
+                  <div className="flex items-center gap-2 truncate">
+                    {/* Media thumbnail/icon */}
+                    {isVideo ? (
+                      <span className="p-1.5 bg-purple-50 text-purple-600 rounded">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        </svg>
+                      </span>
+                    ) : (
+                      <span className="p-1.5 bg-blue-50 text-blue-600 rounded">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                        </svg>
+                      </span>
+                    )}
+                    <span className="font-medium text-gray-700 truncate max-w-[200px]" title={m.file.name}>
+                      {m.file.name}
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                      ({(m.file.size / (1024 * 1024)).toFixed(2)} MB)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Status badges */}
+                    {m.status === 'queued' && <span className="text-gray-400 font-medium">Queued</span>}
+                    {m.status === 'uploading' && <span className="text-yellow-600 font-medium animate-pulse">Uploading…</span>}
+                    {m.status === 'done' && <span className="text-green-600 font-medium">✓ Ready</span>}
+                    {m.status === 'error' && <span className="text-red-600 font-medium" title={m.error}>⚠ Error</span>}
+
+                    {/* Remove button */}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(m.id)}
+                      disabled={loading}
+                      className="p-1 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded disabled:opacity-50"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {error && <p className="text-xs text-red-600">⚠ {error}</p>}
@@ -667,8 +910,9 @@ export default function ProductDetail() {
                 </p>
 
                 {/* Product name */}
-                <h1 className="text-2xl font-semibold text-gray-900 leading-snug mb-2">
-                  {product.product_name}
+                <h1 className="text-2xl font-semibold text-gray-900 leading-snug mb-2 flex items-center justify-between gap-4">
+                  <span>{product.product_name}</span>
+                  <ShareButton productName={product.product_name} showToast={showToast} />
                 </h1>
 
                 {/* Brand · Category */}
