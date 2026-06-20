@@ -2043,21 +2043,6 @@ function SellerOrderCard({ order, currentUser, onUpdateStatus }) {
             <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
             {cfg.label}
           </span>
-          <div className="flex items-center gap-1.5 bg-white border border-gray-300 rounded px-2 py-1 shadow-sm">
-            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Status:</span>
-            <select
-              value={status}
-              onChange={(e) => onUpdateStatus?.(order.id, e.target.value)}
-              className="text-xs bg-transparent border-none outline-none font-medium text-gray-700 cursor-pointer focus:ring-0 p-0"
-            >
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="returned">Returned</option>
-            </select>
-          </div>
         </div>
       </div>
 
@@ -2081,9 +2066,23 @@ function SellerOrderCard({ order, currentUser, onUpdateStatus }) {
                   </p>
                 )}
               </div>
-              <span className="text-xs text-gray-500 flex-shrink-0">
-                Qty: <b>{item.quantity}</b>
-              </span>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                <span className="text-xs text-gray-500">
+                  Qty: <b>{item.quantity}</b>
+                </span>
+                {item.status === 'delivered' ? (
+                  <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-200">
+                    Delivered
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => onUpdateStatus?.(item.id, "delivered")}
+                    className="text-[10px] px-2 py-1 rounded border border-green-500 bg-white hover:bg-green-50 text-green-700 transition-all shadow-sm"
+                  >
+                    Mark Delivered
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -2221,9 +2220,9 @@ function SellerOrdersTab() {
     }
   }, []);
 
-  const handleUpdateStatus = useCallback(async (orderId, newStatus) => {
+  const handleUpdateStatus = useCallback(async (itemId, newStatus) => {
     try {
-      await client.patch(`/user/order/${orderId}/status/`, { status: newStatus });
+      await client.patch(`/user/order-item/${itemId}/status/`, { status: newStatus });
       fetchOrders();
     } catch {
       alert("Failed to update status. Please try again.");

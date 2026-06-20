@@ -333,32 +333,14 @@ function OrderCard({ order, index, currentUser, onUpdateStatus }) {
           </div>
 
           {/* Right — order number + status */}
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-            <div className="flex flex-col items-end gap-1">
-              <p className="text-[11px] text-gray-400">
-                Order{" "}
-                <span className="font-mono font-medium text-gray-600">
-                  #{orderNum}
-                </span>
-              </p>
-              <StatusBadge status={status} />
-            </div>
-            
-            <div className="flex items-center gap-1.5 bg-white border border-gray-300 rounded px-2 py-1 shadow-sm">
-              <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Status:</span>
-              <select
-                value={status}
-                onChange={(e) => onUpdateStatus?.(order.id, e.target.value)}
-                className="text-xs bg-transparent border-none outline-none font-medium text-gray-700 cursor-pointer focus:ring-0 p-0"
-              >
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="returned">Returned</option>
-              </select>
-            </div>
+          <div className="flex flex-col items-end gap-1.5">
+            <p className="text-[11px] text-gray-400">
+              Order{" "}
+              <span className="font-mono font-medium text-gray-600">
+                #{orderNum}
+              </span>
+            </p>
+            <StatusBadge status={status} />
           </div>
         </div>
       </div>
@@ -407,13 +389,25 @@ function OrderCard({ order, index, currentUser, onUpdateStatus }) {
                 )}
               </div>
 
-              {/* Quantity */}
-              <span className="text-sm text-gray-500 flex-shrink-0 whitespace-nowrap">
-                Qty:{" "}
-                <span className="font-semibold text-gray-700">
-                  {item.quantity}
+              {/* Quantity & Status */}
+              <div className="flex flex-col items-end gap-1 flex-shrink-0 whitespace-nowrap">
+                <span className="text-sm text-gray-500">
+                  Qty:{" "}
+                  <span className="font-semibold text-gray-700">
+                    {item.quantity}
+                  </span>
                 </span>
-              </span>
+                {item.status && item.status !== 'pending' && (
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded border capitalize ${
+                    item.status === 'delivered' ? 'text-green-700 bg-green-50 border-green-200' :
+                    item.status === 'shipped' ? 'text-purple-700 bg-purple-50 border-purple-200' :
+                    item.status === 'processing' ? 'text-blue-700 bg-blue-50 border-blue-200' :
+                    'text-gray-600 bg-gray-50 border-gray-200'
+                  }`}>
+                    {item.status}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>
