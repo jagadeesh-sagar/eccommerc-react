@@ -1089,11 +1089,17 @@ export default function ProductDetail() {
                 </p>
               )}
 
-              {isBuyer && (
+              {isBuyer && product.can_review && (
                 <WriteReviewForm
                   productId={id}
                   onSuccess={fetchProduct}
                 />
+              )}
+
+              {isBuyer && !product.can_review && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-xs text-orange-800 leading-relaxed">
+                  💡 <b>Purchased this product?</b> You can write a review once your order status is marked as <b>delivered</b>.
+                </div>
               )}
 
               {!isAuthenticated && (

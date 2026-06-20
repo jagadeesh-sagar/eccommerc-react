@@ -1987,7 +1987,7 @@ function formatOrderDate(iso) {
       });
 }
 
-function SellerOrderCard({ order, currentUser }) {
+function SellerOrderCard({ order, currentUser, onUpdateStatus }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const status = order.status ?? "pending";
@@ -2031,7 +2031,7 @@ function SellerOrderCard({ order, currentUser }) {
             <p className="text-gray-700 font-medium">{items.length}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {orderId && (
             <span className="text-[11px] text-gray-400 font-mono">
               #{orderId}
@@ -2043,6 +2043,21 @@ function SellerOrderCard({ order, currentUser }) {
             <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
             {cfg.label}
           </span>
+          <div className="flex items-center gap-1.5 bg-white border border-gray-300 rounded px-2 py-1 shadow-sm">
+            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Status:</span>
+            <select
+              value={status}
+              onChange={(e) => onUpdateStatus?.(order.id, e.target.value)}
+              className="text-xs bg-transparent border-none outline-none font-medium text-gray-700 cursor-pointer focus:ring-0 p-0"
+            >
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="returned">Returned</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -2206,6 +2221,15 @@ function SellerOrdersTab() {
     }
   }, []);
 
+  const handleUpdateStatus = useCallback(async (orderId, newStatus) => {
+    try {
+      await client.patch(`/user/order/${orderId}/status/`, { status: newStatus });
+      fetchOrders();
+    } catch {
+      alert("Failed to update status. Please try again.");
+    }
+  }, [fetchOrders]);
+
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -2251,6 +2275,7 @@ function SellerOrdersTab() {
           key={order.id ?? idx}
           order={order}
           currentUser={user}
+          onUpdateStatus={handleUpdateStatus}
         />
       ))}
     </div>
