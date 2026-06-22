@@ -194,17 +194,40 @@ function Section({ title, children }) {
 // Reviews
 // ─────────────────────────────────────────────────────────────────────────────
 
-function ReviewCard({ review }) {
+
+function ReviewCard({ review, currentUser, onDelete }) {
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [modalMedia, setModalMedia] = useState(null)
+  
   // Collect all images: new ReviewMedia array OR old review_image field
   const mediaImages = (review.media ?? []).filter(m => m.media_type === 'image')
   const mediaVideo  = (review.media ?? []).find(m => m.media_type === 'video')
 
+  const allMedia = [...mediaImages]
+  if (mediaVideo) allMedia.push(mediaVideo)
+
   // Backward compat: show old-style single image/video if no new media
-  const legacyImage = (!mediaImages.length && review.review_image) ? review.review_image : null
-  const legacyVideo = (!mediaVideo && review.review_video) ? review.review_video : null
+  if (allMedia.length === 0) {
+    if (review.review_image) allMedia.push({ id: 'img', url: review.review_image, media_type: 'image' })
+    if (review.review_video) allMedia.push({ id: 'vid', url: review.review_video, media_type: 'video' })
+  }
+  
+  const isOwner = currentUser?.id === review.user?.id || currentUser?.username === review.user || currentUser?.email === review.user
+
+  async function handleDelete() {
+    if (!window.confirm("Are you sure you want to delete your review?")) return
+    setIsDeleting(true)
+    try {
+      await onDelete(review)
+    } catch (err) {
+      alert("Failed to delete review.")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
-    <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-2">
+    <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-2 relative">
       {/* Header row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -215,11 +238,20 @@ function ReviewCard({ review }) {
             </span>
           )}
         </div>
-        {review.created_at && (
-          <span className="text-[11px] text-gray-400">
-            {new Date(review.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {review.created_at && (
+            <span className="text-[11px] text-gray-400">
+              {new Date(review.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          )}
+          {isOwner && (
+             <button onClick={handleDelete} disabled={isDeleting} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors" title="Delete Review">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                 <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+               </svg>
+             </button>
+          )}
+        </div>
       </div>
 
       {/* Review text */}
@@ -227,39 +259,53 @@ function ReviewCard({ review }) {
         <p className="text-sm text-gray-700 leading-relaxed">{review.review_text}</p>
       )}
 
-      {/* Images — horizontal scrollable row */}
-      {(mediaImages.length > 0 || legacyImage) && (
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
-          {mediaImages.map((m, i) => (
-            <a key={m.id} href={m.url} target="_blank" rel="noreferrer">
-              <img
-                src={m.url}
-                alt={`Review image ${i + 1}`}
-                className="h-24 w-24 flex-shrink-0 rounded-lg object-cover border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in"
-                onError={e => { e.currentTarget.style.display = 'none' }}
-              />
-            </a>
-          ))}
-          {legacyImage && (
-            <a href={legacyImage} target="_blank" rel="noreferrer">
-              <img
-                src={legacyImage}
-                alt="Review image"
-                className="h-24 w-24 flex-shrink-0 rounded-lg object-cover border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in"
-                onError={e => { e.currentTarget.style.display = 'none' }}
-              />
-            </a>
-          )}
+      {/* Media Rendering */}
+      {allMedia.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {allMedia.slice(0, 4).map((m, i) => {
+            const isVideo = m.media_type === 'video'
+            const isLastVisible = i === 3 && allMedia.length > 4
+            return (
+              <div 
+                key={m.id || i} 
+                className="relative h-20 w-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity"
+                onClick={() => setModalMedia(m)}
+              >
+                {isVideo ? (
+                  <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white opacity-80">
+                      <path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                ) : (
+                  <img src={m.url} alt="Review" className="w-full h-full object-cover" />
+                )}
+                
+                {isLastVisible && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">+{allMedia.length - 4}</span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
-
-      {/* Video */}
-      {(mediaVideo || legacyVideo) && (
-        <video
-          src={mediaVideo?.url ?? legacyVideo}
-          controls
-          className="w-full max-h-48 rounded-lg border border-gray-200 bg-black"
-        />
+      
+      {/* Simple Modal */}
+      {modalMedia && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setModalMedia(null)}>
+          <div className="relative max-w-4xl w-full max-h-[90vh] flex justify-center" onClick={e => e.stopPropagation()}>
+            <button className="absolute -top-10 right-0 text-white hover:text-gray-300" onClick={() => setModalMedia(null)}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+            </button>
+            {modalMedia.media_type === 'video' ? (
+               <video src={modalMedia.url} controls autoPlay className="max-w-full max-h-[85vh] rounded" />
+            ) : (
+               <img src={modalMedia.url} alt="Full View" className="max-w-full max-h-[85vh] object-contain rounded" />
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
@@ -569,7 +615,7 @@ function AskQuestionForm({ productId, onSuccess }) {
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isAuthenticated, isBuyer, authReady } = useAuth()
+  const { user, isAuthenticated, isBuyer, authReady } = useAuth()
   const { addToCart } = useCart()
 
   const [product, setProduct] = useState(null)
@@ -1081,7 +1127,7 @@ export default function ProductDetail() {
             <Section title={`Customer Reviews${reviews.length > 0 ? ` (${reviews.length})` : ''}`}>
               {reviews.length > 0 ? (
                 <div className="space-y-3 mb-6">
-                  {reviews.map((r, i) => <ReviewCard key={i} review={r} />)}
+                  {reviews.map((r, i) => <ReviewCard key={i} review={r} currentUser={user} onDelete={handleDeleteReview} />)}
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 mb-5">
