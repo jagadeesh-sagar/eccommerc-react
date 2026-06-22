@@ -194,14 +194,16 @@ function Section({ title, children }) {
 // Reviews
 // ─────────────────────────────────────────────────────────────────────────────
 
-
 function ReviewCard({ review, currentUser, onDelete }) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [modalMedia, setModalMedia] = useState(null)
-  
+
+  if (!review) return null
+
   // Collect all images: new ReviewMedia array OR old review_image field
-  const mediaImages = (review.media ?? []).filter(m => m.media_type === 'image')
-  const mediaVideo  = (review.media ?? []).find(m => m.media_type === 'video')
+  const safeMedia = Array.isArray(review.media) ? review.media : []
+  const mediaImages = safeMedia.filter(m => m && m.media_type === 'image')
+  const mediaVideo  = safeMedia.find(m => m && m.media_type === 'video')
 
   const allMedia = [...mediaImages]
   if (mediaVideo) allMedia.push(mediaVideo)
@@ -211,8 +213,14 @@ function ReviewCard({ review, currentUser, onDelete }) {
     if (review.review_image) allMedia.push({ id: 'img', url: review.review_image, media_type: 'image' })
     if (review.review_video) allMedia.push({ id: 'vid', url: review.review_video, media_type: 'video' })
   }
-  
-  const isOwner = currentUser?.id === review.user?.id || currentUser?.username === review.user || currentUser?.email === review.user
+
+  const isOwner = Boolean(
+    currentUser && (
+      (review.user && currentUser.id === review.user?.id) || 
+      currentUser.username === review.user || 
+      currentUser.email === review.user
+    )
+  )
 
   async function handleDelete() {
     if (!window.confirm("Are you sure you want to delete your review?")) return
@@ -231,7 +239,7 @@ function ReviewCard({ review, currentUser, onDelete }) {
       {/* Header row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <StarRating rating={review.rating} />
+          <StarRating rating={review.rating || 0} />
           {review.is_verified_purchase && (
             <span className="text-[11px] font-medium text-[#007600] bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
               ✓ Verified Purchase
@@ -244,10 +252,10 @@ function ReviewCard({ review, currentUser, onDelete }) {
               {new Date(review.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </span>
           )}
-          {isOwner && (
+          {isOwner && onDelete && (
              <button onClick={handleDelete} disabled={isDeleting} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors" title="Delete Review">
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                 <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                </svg>
              </button>
           )}
@@ -263,11 +271,12 @@ function ReviewCard({ review, currentUser, onDelete }) {
       {allMedia.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
           {allMedia.slice(0, 4).map((m, i) => {
+            if (!m) return null;
             const isVideo = m.media_type === 'video'
             const isLastVisible = i === 3 && allMedia.length > 4
             return (
               <div 
-                key={m.id || i} 
+                key={m.id || `media-${i}`} 
                 className="relative h-20 w-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity"
                 onClick={() => setModalMedia(m)}
               >
@@ -278,7 +287,7 @@ function ReviewCard({ review, currentUser, onDelete }) {
                     </svg>
                   </div>
                 ) : (
-                  <img src={m.url} alt="Review" className="w-full h-full object-cover" />
+                  <img src={m.url || ''} alt="Review" className="w-full h-full object-cover" />
                 )}
                 
                 {isLastVisible && (
@@ -659,6 +668,16 @@ export default function ProductDetail() {
       setLoading(false)
     }
   }, [id, navigate])
+
+  const handleDeleteReview = async (review) => {
+    try {
+      await client.delete(`/user/product/detail/review/?q=${id}`);
+      fetchProduct(); // reload reviews
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete review.");
+    }
+  };
 
   useEffect(() => {
     fetchProduct()
