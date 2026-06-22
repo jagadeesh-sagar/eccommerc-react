@@ -79,10 +79,26 @@ export default function Header() {
   // Search input — pre-fill from URL
   const [query, setQuery] = useState(searchParams.get('n') ?? '')
 
-  // Categories for the second nav strip
+  // Categories for the second nav strip and sidebar
   const [categories, setCategories] = useState([])
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [isSidebarOpen, setSidebarOpen] = useState(false)
   const accountRef = useRef(null)
+
+  // Close sidebar on Escape
+  useEffect(() => {
+    function handleEsc(e) {
+      if (e.key === 'Escape') setSidebarOpen(false)
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [])
+
+  // Lock body scroll when sidebar is open
+  useEffect(() => {
+    if (isSidebarOpen) document.body.style.overflow = 'hidden'
+    else document.body.style.overflow = ''
+  }, [isSidebarOpen])
 
   // Fetch categories once on mount
   useEffect(() => {
@@ -119,6 +135,7 @@ export default function Header() {
   }
 
   function handleCategoryClick(catName) {
+    setSidebarOpen(false)
     navigate(`/?ct=${encodeURIComponent(catName)}`)
   }
 
@@ -249,12 +266,14 @@ export default function Header() {
         </Link>
       </div>
 
+      </div>
+
       {/* ── Row 2 — Category strip ────────────────────────────────────── */}
-      <div className="bg-[#232f3e] text-white px-3 flex items-center gap-1 overflow-x-auto scrollbar-none">
+      <div className="bg-[#232f3e] text-white px-3 flex items-center gap-2 overflow-x-auto scrollbar-none h-10">
         {/* "All" hamburger */}
         <button
-          onClick={() => navigate('/')}
-          className="flex-shrink-0 flex items-center gap-1 px-2 py-2 text-sm font-bold hover:bg-white/10 rounded transition-colors whitespace-nowrap"
+          onClick={() => setSidebarOpen(true)}
+          className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 text-sm font-bold hover:bg-white/10 rounded transition-colors whitespace-nowrap"
         >
           <MenuIcon />
           All
@@ -269,20 +288,77 @@ export default function Header() {
             🏪 Seller Hub
           </Link>
         )}
-
-        {categories.slice(0, 14).map((cat) => (
-          <button
-            key={cat.name}
-            onClick={() => handleCategoryClick(cat.name)}
-            className={[
-              'flex-shrink-0 px-2.5 py-2 text-sm hover:bg-white/10 rounded transition-colors whitespace-nowrap',
-              searchParams.get('ct') === cat.name ? 'font-bold border border-white/60' : '',
-            ].join(' ')}
-          >
-            {cat.name}
-          </button>
-        ))}
       </div>
+
+      {/* ── Sidebar Drawer ────────────────────────────────────────────── */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 z-[9999] flex">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/70 transition-opacity" 
+            onClick={() => setSidebarOpen(false)}
+          />
+          
+          {/* Drawer Panel */}
+          <div className="relative w-80 max-w-[85vw] h-full bg-white flex flex-col shadow-2xl animate-slide-in-left">
+            {/* Close button (outside panel on desktop, but inside flex container) */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="absolute -right-12 top-4 w-10 h-10 flex items-center justify-center text-white hover:text-[#febd69] transition-colors"
+              aria-label="Close Sidebar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* User Hello Header */}
+            <div className="bg-[#131921] text-white p-4 flex items-center gap-3 flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span className="text-lg font-bold">
+                Hello, {user?.username ?? 'sign in'}
+              </span>
+            </div>
+
+            {/* Scrollable Categories List */}
+            <div className="flex-1 overflow-y-auto py-4">
+              <div className="px-5 mb-2">
+                <h3 className="text-lg font-bold text-gray-800">Shop By Category</h3>
+              </div>
+              <ul className="flex flex-col">
+                <li key="all">
+                  <button
+                    onClick={() => { setSidebarOpen(false); navigate('/'); }}
+                    className="w-full text-left px-5 py-3.5 text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-between group"
+                  >
+                    <span>All Products</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-400 group-hover:text-gray-800">
+                      <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 0 1.02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </li>
+                {categories.map((cat) => (
+                  <li key={cat.name}>
+                    <button
+                      onClick={() => handleCategoryClick(cat.name)}
+                      className="w-full text-left px-5 py-3.5 text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-between group"
+                    >
+                      <span className="capitalize">{cat.name}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-400 group-hover:text-gray-800">
+                        <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 0 1.02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

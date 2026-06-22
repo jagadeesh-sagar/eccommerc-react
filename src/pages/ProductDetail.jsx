@@ -696,6 +696,14 @@ export default function ProductDetail() {
   const [selectedMedia, setSelectedMedia] = useState(null) // { image_url, video_url, alt_text }
   const [fullscreen, setFullscreen] = useState(false)
 
+  // Fullscreen escape listener
+  useEffect(() => {
+    function handleEsc(e) {
+      if (e.key === 'Escape') setFullscreen(false)
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [])
   // ── Fetch product ──────────────────────────────────────────────────
   const fetchProduct = useCallback(async () => {
     setLoading(true)
@@ -906,13 +914,13 @@ export default function ProductDetail() {
             <div className="flex flex-col lg:flex-row gap-10">
 
               {/* ── Left: Image gallery ──────────────────────────── */}
-              <div className="lg:w-[420px] flex-shrink-0">
+              <div className="lg:w-[500px] xl:w-[550px] flex-shrink-0">
 
                 {/* Main frame */}
                 <div
-                  className="relative rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center group"
+                  className="relative rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center group transition-all duration-300"
                   style={{
-                    height: 420,
+                    height: 520,
                     backgroundColor: selectedMedia?.image_url || selectedMedia?.video_url
                       ? '#fff'
                       : pseudoColor(product.product_name),
@@ -966,6 +974,7 @@ export default function ProductDetail() {
                         <button
                           key={i}
                           onClick={() => setSelectedMedia(media)}
+                          onMouseEnter={() => setSelectedMedia(media)}
                           className={[
                             'flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden focus:outline-none transition-all',
                             isSelected

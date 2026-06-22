@@ -67,7 +67,7 @@ export default function BannerCarousel() {
   }
 
   return (
-    <div className="relative w-full h-[250px] sm:h-[350px] md:h-[450px] lg:h-[500px] overflow-hidden bg-gray-100 group select-none">
+    <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[550px] xl:h-[600px] overflow-hidden bg-gray-100 group select-none">
       {/* Slides Container */}
       <div
         className="flex h-full w-full transition-transform duration-500 ease-in-out"
@@ -83,7 +83,7 @@ export default function BannerCarousel() {
             <img
               src={slide.image}
               alt={`Banner ${slide.id}`}
-              className="w-full h-full object-cover sm:object-fill object-center"
+              className="w-full h-full object-cover object-center"
             />
             
             {/* Text Overlay */}

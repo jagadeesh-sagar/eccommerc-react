@@ -137,103 +137,7 @@ function pseudoColor(str = '') {
 // Categories section
 // ---------------------------------------------------------------------------
 
-function CategoriesSection({ activeCategory }) {
-  const navigate    = useNavigate()
-  const [cats, setCats]       = useState([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    client.get('/user/product/categories/')
-      .then(({ data }) => {
-        const list = Array.isArray(data) ? data : (data?.results ?? [])
-        setCats(list)
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
-
-  function handleClick(name) {
-    if (activeCategory === name) {
-      navigate('/')           // deselect — go back to all products
-    } else {
-      navigate(`/?ct=${encodeURIComponent(name)}`)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex gap-3 overflow-x-auto scrollbar-none pb-1">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex-shrink-0 w-24 h-28 rounded-xl bg-gray-200 animate-pulse" />
-        ))}
-      </div>
-    )
-  }
-
-  if (cats.length === 0) return null
-
-  return (
-    <section className="bg-white border-b border-gray-200 py-5 px-3">
-      <div className="max-w-screen-xl mx-auto">
-        <h2 className="text-base font-semibold text-gray-800 mb-4">Shop by Category</h2>
-
-        {/* Scrollable row */}
-        <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 -mx-1 px-1">
-          {/* "All" chip */}
-          <button
-            onClick={() => navigate('/')}
-            className={[
-              'flex-shrink-0 flex flex-col items-center justify-center gap-2 w-24 h-28 rounded-xl border-2 transition-all duration-150',
-              !activeCategory
-                ? 'border-[#e77600] bg-orange-50 shadow-md'
-                : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:shadow-sm',
-            ].join(' ')}
-          >
-            <span className="text-3xl">🏪</span>
-            <span className={`text-xs font-semibold text-center leading-tight px-1 ${!activeCategory ? 'text-[#c7511f]' : 'text-gray-600'}`}>
-              All
-            </span>
-          </button>
-
-          {cats.map((cat, idx) => {
-            const name     = cat.name ?? cat.category_name ?? String(cat)
-            const icon     = getCatIcon(name)
-            const gradient = CAT_BG[idx % CAT_BG.length]
-            const isActive = activeCategory === name
-
-            return (
-              <button
-                key={cat.id ?? name}
-                onClick={() => handleClick(name)}
-                className={[
-                  'flex-shrink-0 flex flex-col items-center justify-end gap-0 w-24 h-28 rounded-xl overflow-hidden border-2 transition-all duration-150 group',
-                  isActive
-                    ? 'border-[#e77600] shadow-lg scale-105'
-                    : 'border-transparent hover:shadow-md hover:scale-[1.03]',
-                ].join(' ')}
-              >
-                {/* Coloured card body */}
-                <div className={`w-full flex-1 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-                  <span className="text-3xl drop-shadow">{icon}</span>
-                </div>
-
-                {/* Label */}
-                <div className={[
-                  'w-full py-1.5 px-1 text-center',
-                  isActive ? 'bg-orange-50' : 'bg-white',
-                ].join(' ')}>
-                  <span className={`text-[11px] font-semibold leading-tight line-clamp-2 ${isActive ? 'text-[#c7511f]' : 'text-gray-700 group-hover:text-gray-900'}`}>
-                    {name}
-                  </span>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Pagination
@@ -350,15 +254,15 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart }) {
   return (
     <div
       onClick={() => productId && navigate(`/product/${productId}`)}
-      className="bg-white rounded border border-gray-200 flex flex-col overflow-hidden cursor-pointer group hover:shadow-lg transition-shadow duration-200"
+      className="bg-white rounded-lg border border-gray-200 flex flex-col overflow-hidden cursor-pointer group hover:shadow-xl hover:-translate-y-0.5 hover:border-gray-300 transition-all duration-300"
     >
       {/* Image */}
       <div
-        className="relative flex items-center justify-center h-48 text-5xl font-bold text-gray-300 select-none overflow-hidden"
+        className="relative flex items-center justify-center h-52 text-5xl font-bold text-gray-300 select-none overflow-hidden p-3"
         style={{ backgroundColor: showImg ? '#fff' : bg }}
       >
         {showImg
-          ? <img src={imgSrc} alt={product.product_name} className="w-full h-full object-contain" onError={() => setImgError(true)} />
+          ? <img src={imgSrc} alt={product.product_name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" onError={() => setImgError(true)} />
           : <span>{(product.product_name ?? '?')[0].toUpperCase()}</span>
         }
 
@@ -408,13 +312,13 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart }) {
 
 function ProductSkeleton() {
   return (
-    <div className="bg-white rounded border border-gray-200 overflow-hidden animate-pulse">
-      <div className="h-48 bg-gray-200" />
-      <div className="p-3 space-y-2">
-        <div className="h-3 bg-gray-200 rounded w-full" />
-        <div className="h-3 bg-gray-200 rounded w-2/3" />
-        <div className="h-4 bg-gray-200 rounded w-1/3 mt-3" />
-        <div className="h-8 bg-gray-200 rounded mt-2" />
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-pulse">
+      <div className="h-52 bg-gray-200/60" />
+      <div className="p-4 space-y-2.5">
+        <div className="h-3.5 bg-gray-200/80 rounded w-full" />
+        <div className="h-3.5 bg-gray-200/80 rounded w-2/3" />
+        <div className="h-4 bg-gray-200/80 rounded w-1/3 mt-4" />
+        <div className="h-9 bg-gray-200/80 rounded mt-3" />
       </div>
     </div>
   )
@@ -547,10 +451,6 @@ export default function Home() {
         <BannerCarousel />
       )}
 
-      {/* Categories — always visible (below hero when no search, always when category/search active) */}
-      {!searchTerm && (
-        <CategoriesSection activeCategory={categoryFilter} />
-      )}
 
       <main className="flex-1 max-w-screen-xl mx-auto w-full px-3 py-5">
 
