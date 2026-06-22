@@ -498,8 +498,14 @@ function ProductsTab() {
     if (url) setLoadingMore(true);
     else setLoading(true);
 
+    let fetchUrl = url || "/user/products/";
+    if (typeof fetchUrl === 'string' && fetchUrl.startsWith('http')) {
+      const obj = new URL(fetchUrl);
+      fetchUrl = obj.pathname + obj.search;
+    }
+
     client
-      .get(url || "/user/products/")
+      .get(fetchUrl)
       .then(({ data }) => {
         const list = Array.isArray(data)
           ? data

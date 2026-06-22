@@ -835,9 +835,14 @@ export default function ProductDetail() {
 
   // ── Primary image / gallery init ───────────────────────────────────
 
-  const allMedia = product?.images ?? []
-  const primaryImage =
-    allMedia.find((i) => i.is_primary) ?? allMedia[0] ?? null
+  const productImages = product?.images ?? []
+  const allMedia = [...productImages].sort((a, b) => {
+    if (a.is_primary && !b.is_primary) return -1;
+    if (!a.is_primary && b.is_primary) return 1;
+    return 0;
+  });
+  
+  const primaryImage = allMedia[0] ?? null
 
   // Initialise selectedMedia once when the product first loads
   useEffect(() => {
