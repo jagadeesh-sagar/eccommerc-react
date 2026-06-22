@@ -718,11 +718,17 @@ export default function AIChatWidget() {
       {/* ─────────────────── Chat panel ──────────────────────────── */}
       {isOpen && (
         <div
-          style={{ width: panelW, height: panelH }}
+          style={{ 
+            '--panel-w': `${panelW}px`,
+            '--panel-h': `${panelH}px`,
+          }}
           className={[
             'fixed z-[9998]',
-            'bottom-[84px] left-6',
-            'bg-white rounded-2xl shadow-2xl border border-gray-200',
+            'bottom-0 sm:bottom-[84px]',
+            'left-0 sm:left-6',
+            'w-full sm:w-[var(--panel-w)]',
+            'h-[80dvh] sm:h-[var(--panel-h)]',
+            'bg-white sm:rounded-2xl shadow-2xl sm:border border-gray-200',
             'flex flex-col overflow-hidden',
           ].join(' ')}
           role="dialog"
