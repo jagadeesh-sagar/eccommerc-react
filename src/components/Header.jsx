@@ -266,8 +266,6 @@ export default function Header() {
         </Link>
       </div>
 
-      </div>
-
       {/* ── Row 2 — Category strip ────────────────────────────────────── */}
       <div className="bg-[#232f3e] text-white px-3 flex items-center gap-2 overflow-x-auto scrollbar-none h-10">
         {/* "All" hamburger */}
