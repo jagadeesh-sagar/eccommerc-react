@@ -104,7 +104,7 @@ export default function Header() {
   useEffect(() => {
     client
       .get('/user/product/categories/')
-      .then(({ data }) => setCategories(Array.isArray(data) ? data : []))
+      .then(({ data }) => setCategories(Array.isArray(data) ? data : (data?.results ?? [])))
       .catch(() => {})
   }, [])
 
@@ -155,10 +155,10 @@ export default function Header() {
           className="flex-shrink-0 border border-transparent hover:border-white rounded px-1 py-0.5 transition-colors mr-1"
         >
           <span className="text-[#ff9900] font-extrabold text-xl tracking-tight leading-none font-serif">
-            amazon
+            Chatram
           </span>
           <span className="text-white text-[10px] block -mt-0.5 leading-none">
-            .in
+            
           </span>
         </Link>
 
