@@ -359,6 +359,7 @@ function ManageMediaModal({ product, onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+  const [settingPrimaryId, setSettingPrimaryId] = useState(null);
 
   useEffect(() => {
     const pid = extractId(product.product_detail);
@@ -384,6 +385,32 @@ function ManageMediaModal({ product, onClose }) {
       alert("Failed to delete media.");
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handleSetPrimary(m) {
+    if (m.is_primary) return;
+    setSettingPrimaryId(m.id);
+    try {
+      const payload = {
+        product_id: extractId(product.product_detail),
+        is_primary: true,
+        display_order: 1,
+      };
+      if (m.video_url) {
+        payload.video_url = m.video_url;
+        payload.image_url = "";
+      } else {
+        payload.image_url = m.image_url;
+        payload.video_url = "";
+      }
+      await client.post('/user/product/image/', payload);
+      // Optimistically update
+      setMedia(prev => prev.map(img => ({ ...img, is_primary: img.id === m.id })));
+    } catch (err) {
+      alert("Failed to set primary.");
+    } finally {
+      setSettingPrimaryId(null);
     }
   }
 
@@ -413,7 +440,14 @@ function ManageMediaModal({ product, onClose }) {
                     ) : (
                       <img src={url} alt="product media" className="w-full h-32 object-cover" />
                     )}
-                    <div className="absolute top-1 right-1">
+
+                    {m.is_primary && (
+                      <div className="absolute top-1 left-1 bg-[#ffd814] text-xs font-bold px-2 py-0.5 rounded shadow-sm text-black">
+                        Primary
+                      </div>
+                    )}
+
+                    <div className="absolute top-1 right-1 flex flex-col gap-1">
                       <button
                         onClick={() => handleDeleteMedia(m.id)}
                         disabled={deletingId === m.id}
@@ -427,6 +461,18 @@ function ManageMediaModal({ product, onClose }) {
                         )}
                       </button>
                     </div>
+
+                    {!m.is_primary && (
+                      <div className="absolute bottom-1 left-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleSetPrimary(m)}
+                          disabled={settingPrimaryId === m.id}
+                          className="w-full bg-white/90 hover:bg-[#ffd814] text-gray-800 text-xs font-semibold py-1 rounded shadow backdrop-blur transition-colors"
+                        >
+                          {settingPrimaryId === m.id ? "Setting..." : "Set Primary"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -440,26 +486,38 @@ function ManageMediaModal({ product, onClose }) {
 
 function ProductsTab() {
   const [products, setProducts] = useState([]);
+  const [nextUrl, setNextUrl] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [deleteProduct, setDeleteProduct] = useState(null);
   const [manageMediaProduct, setManageMediaProduct] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
 
-  useEffect(() => {
-    setLoading(true);
+  const fetchProducts = (url) => {
+    if (url) setLoadingMore(true);
+    else setLoading(true);
+
     client
-      .get("/user/products/")
+      .get(url || "/user/products/")
       .then(({ data }) => {
         const list = Array.isArray(data)
           ? data
           : Array.isArray(data?.results)
             ? data.results
             : [];
-        setProducts(list);
+        setProducts(prev => url ? [...prev, ...list] : list);
+        setNextUrl(data?.next || null);
       })
       .catch(() => setError("Failed to load products."))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setLoadingMore(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchProducts();
   }, []);
 
   function handleDeleted(prod) {
@@ -559,6 +617,17 @@ function ProductsTab() {
           </div>
         );
       })}
+      {nextUrl && (
+        <div className="flex justify-center mt-6 mb-4">
+          <button 
+            onClick={() => fetchProducts(nextUrl)} 
+            disabled={loadingMore}
+            className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            {loadingMore ? "Loading..." : "Load More Products"}
+          </button>
+        </div>
+      )}
       {deleteProduct && (
         <ProductDeleteModal
           product={deleteProduct}

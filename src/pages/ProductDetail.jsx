@@ -194,9 +194,14 @@ function Section({ title, children }) {
 // Reviews
 // ─────────────────────────────────────────────────────────────────────────────
 
-function ReviewCard({ review, currentUser, onDelete }) {
+function ReviewCard({ review, currentUser, onDelete, onUpdate }) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [modalMedia, setModalMedia] = useState(null)
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [editRating, setEditRating] = useState(review?.rating || 0)
+  const [editText, setEditText] = useState(review?.review_text || '')
+  const [isUpdating, setIsUpdating] = useState(false)
 
   if (!review) return null
 
@@ -234,25 +239,50 @@ function ReviewCard({ review, currentUser, onDelete }) {
     }
   }
 
+  async function handleUpdateSubmit() {
+    if (!editRating || !editText.trim()) {
+      alert("Rating and text are required.");
+      return;
+    }
+    setIsUpdating(true);
+    try {
+      await onUpdate(editText, editRating);
+      setIsEditing(false);
+    } catch (err) {
+      // handled by parent
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
   return (
     <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-2 relative">
       {/* Header row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <StarRating rating={review.rating || 0} />
-          {review.is_verified_purchase && (
+          {isEditing ? (
+            <StarRating rating={editRating} setRating={setEditRating} />
+          ) : (
+            <StarRating rating={review.rating || 0} />
+          )}
+          {review.is_verified_purchase && !isEditing && (
             <span className="text-[11px] font-medium text-[#007600] bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
               ✓ Verified Purchase
             </span>
           )}
         </div>
         <div className="flex items-center gap-3">
-          {review.created_at && (
+          {review.created_at && !isEditing && (
             <span className="text-[11px] text-gray-400">
               {new Date(review.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </span>
           )}
-          {isOwner && onDelete && (
+          {isOwner && onUpdate && !isEditing && (
+            <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:bg-blue-50 px-2 py-1 text-xs font-medium rounded transition-colors" title="Edit Review">
+              Edit
+            </button>
+          )}
+          {isOwner && onDelete && !isEditing && (
              <button onClick={handleDelete} disabled={isDeleting} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors" title="Delete Review">
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -263,8 +293,25 @@ function ReviewCard({ review, currentUser, onDelete }) {
       </div>
 
       {/* Review text */}
-      {review.review_text && (
-        <p className="text-sm text-gray-700 leading-relaxed">{review.review_text}</p>
+      {isEditing ? (
+        <div className="space-y-2 mt-2">
+          <textarea 
+            value={editText} 
+            onChange={(e) => setEditText(e.target.value)}
+            className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-[#f0c14b] focus:border-[#f0c14b] outline-none"
+            rows="3"
+          />
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => { setIsEditing(false); setEditText(review?.review_text || ''); setEditRating(review?.rating || 0); }} className="px-3 py-1 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded font-medium transition-colors">Cancel</button>
+            <button onClick={handleUpdateSubmit} disabled={isUpdating} className="px-3 py-1 text-sm bg-[#ffd814] hover:bg-[#f7ca00] text-black rounded font-medium shadow-sm transition-colors disabled:opacity-50">
+              {isUpdating ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        review.review_text && (
+          <p className="text-sm text-gray-700 leading-relaxed">{review.review_text}</p>
+        )
       )}
 
       {/* Media Rendering */}
@@ -676,6 +723,17 @@ export default function ProductDetail() {
     } catch (err) {
       console.error(err);
       alert("Failed to delete review.");
+    }
+  };
+
+  const handleUpdateReview = async (review_text, rating) => {
+    try {
+      await client.patch(`/user/product/detail/review/?q=${id}`, { review_text, rating });
+      fetchProduct(); // reload reviews
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update review.");
+      throw err;
     }
   };
 
@@ -1146,7 +1204,7 @@ export default function ProductDetail() {
             <Section title={`Customer Reviews${reviews.length > 0 ? ` (${reviews.length})` : ''}`}>
               {reviews.length > 0 ? (
                 <div className="space-y-3 mb-6">
-                  {reviews.map((r, i) => <ReviewCard key={i} review={r} currentUser={user} onDelete={handleDeleteReview} />)}
+                  {reviews.map((r, i) => <ReviewCard key={i} review={r} currentUser={user} onDelete={handleDeleteReview} onUpdate={handleUpdateReview} />)}
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 mb-5">
