@@ -258,7 +258,7 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart }) {
     >
       {/* Image */}
       <div
-        className="relative flex items-center justify-center h-52 text-5xl font-bold text-gray-300 select-none overflow-hidden p-3"
+        className="relative flex items-center justify-center h-36 sm:h-52 text-5xl font-bold text-gray-300 select-none overflow-hidden p-2 sm:p-3"
         style={{ backgroundColor: showImg ? '#fff' : bg }}
       >
         {showImg
@@ -278,13 +278,13 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart }) {
       </div>
 
       {/* Details */}
-      <div className="flex flex-col flex-1 p-3 gap-1">
-        <p className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug group-hover:text-[#c7511f] transition-colors">
+      <div className="flex flex-col flex-1 p-2 sm:p-3 gap-0.5 sm:gap-1">
+        <p className="text-xs sm:text-sm font-medium text-gray-800 line-clamp-2 leading-snug group-hover:text-[#c7511f] transition-colors">
           {product.product_name}
         </p>
-        <p className="text-xs text-gray-500">{product.brand_name}</p>
-        <p className="text-xs text-[#007185]">{product.category_name}</p>
-        <p className="text-lg font-bold text-[#B12704] mt-auto pt-1">
+        <p className="text-[10px] sm:text-xs text-gray-500">{product.brand_name}</p>
+        <p className="text-[10px] sm:text-xs text-[#007185]">{product.category_name}</p>
+        <p className="text-sm sm:text-lg font-bold text-[#B12704] mt-auto pt-1">
           {formatPrice(product.base_price)}
         </p>
         <button
@@ -312,9 +312,9 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart }) {
 
 function ProductSkeleton() {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-pulse">
-      <div className="h-52 bg-gray-200/60" />
-      <div className="p-4 space-y-2.5">
+    <div className="bg-white rounded-lg border border-gray-100 flex flex-col overflow-hidden">
+      <div className="h-36 sm:h-52 bg-gray-200 animate-pulse" />
+      <div className="flex flex-col flex-1 p-2 sm:p-3 gap-2">
         <div className="h-3.5 bg-gray-200/80 rounded w-full" />
         <div className="h-3.5 bg-gray-200/80 rounded w-2/3" />
         <div className="h-4 bg-gray-200/80 rounded w-1/3 mt-4" />
@@ -478,7 +478,7 @@ export default function Home() {
         )}
 
         {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <ProductSkeleton key={i} />)
             : products.length > 0

@@ -67,7 +67,7 @@ export default function BannerCarousel() {
   }
 
   return (
-    <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[550px] xl:h-[600px] overflow-hidden bg-gray-100 group select-none">
+    <div className="relative w-full aspect-[16/8] sm:aspect-[16/6] md:aspect-[3.2/1] lg:h-[450px] xl:h-[500px] overflow-hidden bg-gray-100 group select-none">
       {/* Slides Container */}
       <div
         className="flex h-full w-full transition-transform duration-500 ease-in-out"
@@ -88,12 +88,12 @@ export default function BannerCarousel() {
             
             {/* Text Overlay */}
             {slide.overlay && (
-              <div className="absolute inset-y-0 left-0 w-full sm:w-[55%] md:w-[45%] flex flex-col justify-center px-6 sm:px-12 md:px-16 pointer-events-none bg-black/20 sm:bg-transparent">
+              <div className="absolute inset-y-0 left-0 w-[60%] sm:w-[55%] md:w-[45%] flex flex-col justify-center px-4 sm:px-12 md:px-16 pointer-events-none">
                 <div className="pointer-events-auto max-w-lg z-10">
-                  <h2 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 md:mb-4 ${slide.overlay.textColor} drop-shadow-md sm:drop-shadow-none`}>
+                  <h2 className={`text-lg sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-1 sm:mb-2 md:mb-4 ${slide.overlay.textColor}`}>
                     {slide.overlay.heading}
                   </h2>
-                  <p className={`text-sm sm:text-base md:text-lg lg:text-xl mb-4 md:mb-6 font-medium ${slide.overlay.textColor} opacity-95 drop-shadow-md sm:drop-shadow-none`}>
+                  <p className={`text-xs sm:text-base md:text-lg lg:text-xl mb-2 sm:mb-4 md:mb-6 font-medium ${slide.overlay.textColor} opacity-95`}>
                     {slide.overlay.subtext}
                   </p>
                   <button

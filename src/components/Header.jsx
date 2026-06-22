@@ -147,43 +147,49 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50">
-      {/* ── Row 1 ─────────────────────────────────────────────────────── */}
-      <div className="bg-[#131921] text-white px-3 py-2 flex items-center gap-2">
-        {/* Logo */}
-        <Link
-          to="/"
-          className="flex-shrink-0 border border-transparent hover:border-white rounded px-1 py-0.5 transition-colors mr-1"
-        >
-          <span className="text-[#ff9900] font-extrabold text-xl tracking-tight leading-none font-serif">
-            Chatram
-          </span>
-          <span className="text-white text-[10px] block -mt-0.5 leading-none">
-            
-          </span>
-        </Link>
-
-        {/* Search bar */}
-        <form
-          onSubmit={handleSearch}
-          className="flex-1 flex min-w-0 rounded overflow-hidden h-10"
-        >
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search products, brands and more"
-            className="flex-1 min-w-0 px-3 py-2 text-sm text-gray-900 bg-white outline-none"
-          />
-          <button
-            type="submit"
-            className="flex-shrink-0 w-12 flex items-center justify-center bg-[#febd69] hover:bg-[#f3a847] text-[#131921] transition-colors"
-            aria-label="Search"
+      {/* ── Row 1 (Desktop) / Rows 1 & 2 (Mobile) ────────────────────────── */}
+      <div className="bg-[#131921] text-white px-3 py-2 flex flex-col gap-2">
+        
+        {/* Top Row: Logo, Search (hidden on mobile), Account, Orders, Cart */}
+        <div className="flex items-center justify-between gap-2">
+          
+          {/* Logo */}
+          <Link
+            to="/"
+            className="flex-shrink-0 border border-transparent hover:border-white rounded px-1 py-0.5 transition-colors mr-1"
           >
-            <SearchIcon />
-          </button>
-        </form>
+            <span className="text-[#ff9900] font-extrabold text-xl tracking-tight leading-none font-serif">
+              Chatram
+            </span>
+            <span className="text-white text-[10px] block -mt-0.5 leading-none">
+              
+            </span>
+          </Link>
 
-        {/* Account dropdown */}
+          {/* Desktop Search bar */}
+          <form
+            onSubmit={handleSearch}
+            className="hidden sm:flex flex-1 min-w-0 rounded overflow-hidden h-10"
+          >
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search products, brands and more"
+              className="flex-1 min-w-0 px-3 py-2 text-sm text-gray-900 bg-white outline-none"
+            />
+            <button
+              type="submit"
+              className="flex-shrink-0 w-12 flex items-center justify-center bg-[#febd69] hover:bg-[#f3a847] text-[#131921] transition-colors"
+              aria-label="Search"
+            >
+              <SearchIcon />
+            </button>
+          </form>
+
+          {/* Right side group: Account, Orders, Cart */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Account dropdown */}
         <div className="relative flex-shrink-0" ref={accountRef}>
           <button
             onClick={() =>
@@ -249,21 +255,45 @@ export default function Header() {
           <span className="text-sm font-bold leading-tight">&amp; Orders</span>
         </Link>
 
-        {/* Cart */}
-        <Link
-          to="/cart"
-          className="flex-shrink-0 flex items-end gap-1 border border-transparent hover:border-white rounded px-2 py-1 transition-colors"
-        >
-          <div className="relative">
-            <CartIcon />
-            {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-[#ff9900] text-[#131921] text-[11px] font-extrabold rounded-full px-0.5 leading-none">
-                {cartCount > 99 ? '99+' : cartCount}
-              </span>
-            )}
+            {/* Cart */}
+            <Link
+              to="/cart"
+              className="flex-shrink-0 flex items-end gap-1 border border-transparent hover:border-white rounded px-2 py-1 transition-colors"
+            >
+              <div className="relative">
+                <CartIcon />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-[#ff9900] text-[#131921] text-[11px] font-extrabold rounded-full px-0.5 leading-none">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </div>
+              <span className="text-sm font-bold hidden sm:inline">Cart</span>
+            </Link>
           </div>
-          <span className="text-sm font-bold hidden sm:inline">Cart</span>
-        </Link>
+        </div>
+
+        {/* Mobile Search bar */}
+        <form
+          onSubmit={handleSearch}
+          className="flex sm:hidden w-full rounded overflow-hidden h-10"
+        >
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search products, brands and more"
+            className="flex-1 min-w-0 px-3 py-2 text-sm text-gray-900 bg-white outline-none"
+          />
+          <button
+            type="submit"
+            className="flex-shrink-0 w-12 flex items-center justify-center bg-[#febd69] hover:bg-[#f3a847] text-[#131921] transition-colors"
+            aria-label="Search"
+          >
+            <SearchIcon />
+          </button>
+        </form>
+
       </div>
 
       {/* ── Row 2 — Category strip ────────────────────────────────────── */}
