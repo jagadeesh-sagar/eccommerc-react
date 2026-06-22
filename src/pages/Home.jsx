@@ -15,6 +15,7 @@ import Header from '../components/Header'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import BannerCarousel from '../components/BannerCarousel'
 
 // Emoji icons mapped to common category keywords (case-insensitive)
 const CAT_ICONS = {
@@ -542,19 +543,8 @@ export default function Home() {
       <Header />
 
       {/* Hero — only on unfiltered home, page 1 */}
-      {!searchTerm && page === 1 && (
-        <div className="relative overflow-hidden bg-gradient-to-r from-[#131921] via-[#232f3e] to-[#131921] text-white py-12 px-6 text-center select-none">
-          <div className="max-w-2xl mx-auto">
-            <p className="text-xs uppercase tracking-widest text-[#febd69] mb-2">Welcome to ShopZone</p>
-            <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">
-              Find anything.<br /><span className="text-[#febd69]">Delivered fast.</span>
-            </h1>
-            <p className="text-gray-300 text-sm">Millions of products from top brands — all in one place.</p>
-          </div>
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#febd69]/10 rounded-full blur-3xl" />
-          </div>
-        </div>
+      {!searchTerm && !categoryFilter && page === 1 && (
+        <BannerCarousel />
       )}
 
       {/* Categories — always visible (below hero when no search, always when category/search active) */}
