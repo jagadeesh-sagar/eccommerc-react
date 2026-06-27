@@ -1,27 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import bigSaleBanner from '../assets/banner/Big Sale Banner.png'
-import newArrivals from '../assets/banner/New Arrivals.png'
-import categoryShowcase from '../assets/banner/Category Showcase.png'
-import festiveDiscount from '../assets/banner/Festive_Discount Sale.png'
-
+// Images live in public/banners — served directly, NOT bundled by Vite
 const slides = [
   {
     id: 1,
-    image: bigSaleBanner,
+    image: '/banners/Big Sale Banner.png',
     url: '/?ct=electronics',
     overlay: null,
   },
   {
     id: 2,
-    image: newArrivals,
+    image: '/banners/New Arrivals.png',
     url: '/?sort=newest',
     overlay: null,
   },
   {
     id: 3,
-    image: categoryShowcase,
+    image: '/banners/Category Showcase.png',
     url: '/?ct=fashion',
     overlay: {
       heading: 'Elevate Your Everyday',
@@ -32,7 +28,7 @@ const slides = [
   },
   {
     id: 4,
-    image: festiveDiscount,
+    image: '/banners/Festive_Discount Sale.png',
     url: '/?deals=true',
     overlay: {
       heading: 'Festive Sale is Here',

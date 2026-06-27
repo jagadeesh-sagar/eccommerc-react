@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
@@ -7,16 +7,17 @@ import { fetchCSRF } from './utils/csrf'
 import Footer from './components/Footer'
 import AIChatWidget from './components/AIChatWidget'
 
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Home from './pages/Home'
-import ProductDetail from './pages/ProductDetail'
-import Cart from './pages/Cart'
-import Checkout from './pages/Checkout'
-import Orders from './pages/Orders'
-import OrderConfirmation from './pages/OrderConfirmation'
-import Wishlist from './pages/Wishlist'
-import SellerDashboard from './pages/SellerDashboard'
+// Lazy-load all pages so each becomes its own chunk — reduces initial JS bundle
+const Login            = lazy(() => import('./pages/Login'))
+const Register         = lazy(() => import('./pages/Register'))
+const Home             = lazy(() => import('./pages/Home'))
+const ProductDetail    = lazy(() => import('./pages/ProductDetail'))
+const Cart             = lazy(() => import('./pages/Cart'))
+const Checkout         = lazy(() => import('./pages/Checkout'))
+const Orders           = lazy(() => import('./pages/Orders'))
+const OrderConfirmation= lazy(() => import('./pages/OrderConfirmation'))
+const Wishlist         = lazy(() => import('./pages/Wishlist'))
+const SellerDashboard  = lazy(() => import('./pages/SellerDashboard'))
 
 // ---------------------------------------------------------------------------
 // Full-page loading spinner (shown while session restore is in-flight)
@@ -116,7 +117,8 @@ function Layout({ children }) {
 function AppRoutes() {
   return (
     <Layout>
-      <Routes>
+      <Suspense fallback={<AuthLoadingScreen />}>
+        <Routes>
         {/* ── Auth pages (redirect away when already logged in) ── */}
         <Route
           path="/login"
@@ -192,8 +194,9 @@ function AppRoutes() {
         />
 
         {/* ── Catch-all ── */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </Layout>
   )
 }
