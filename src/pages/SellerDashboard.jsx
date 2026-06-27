@@ -306,48 +306,196 @@ function TabBar({ active, onChange }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ProductDeleteModal({ product, onClose, onSuccess }) {
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState("");
+  const RESEND_SECONDS = 60;
 
-  async function handleDelete() {
-    setDeleting(true);
+  // step: 'confirm' | 'otp'
+  const [step, setStep] = useState("confirm");
+  const [otp, setOtp] = useState("");
+  const [sending, setSending] = useState(false);   // requesting OTP
+  const [verifying, setVerifying] = useState(false); // confirming delete
+  const [error, setError] = useState("");
+  const [countdown, setCountdown] = useState(0);
+
+  const timerRef = useRef(null);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => clearInterval(timerRef.current);
+  }, []);
+
+  function startCountdown() {
+    setCountdown(RESEND_SECONDS);
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) { clearInterval(timerRef.current); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  const pid = extractId(product.product_detail);
+
+  async function handleRequestOtp() {
+    setSending(true);
     setError("");
     try {
-      const pid = extractId(product.product_detail);
-      await client.delete(`/user/product/delete/${pid}/`);
+      // variant=0 means we're deleting the full product, not a variant
+      await client.post(`/user/product/request-delete-otp/${pid}/0/`);
+      setStep("otp");
+      startCountdown();
+    } catch (err) {
+      setError(err?.response?.data?.error || "Failed to send OTP. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleResend() {
+    if (countdown > 0) return;
+    setOtp("");
+    setError("");
+    await handleRequestOtp();
+  }
+
+  async function handleVerify(e) {
+    e.preventDefault();
+    if (!otp.trim()) { setError("Please enter the OTP."); return; }
+    setVerifying(true);
+    setError("");
+    try {
+      await client.post(`/user/product/confirm-delete/${pid}/0/`, { otp: otp.trim() });
+      clearInterval(timerRef.current);
       onSuccess(product);
     } catch (err) {
-      setError("Failed to delete product.");
+      const detail = err?.response?.data?.detail || err?.response?.data?.error || "Invalid or expired OTP.";
+      setError(detail);
     } finally {
-      setDeleting(false);
+      setVerifying(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Product</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Are you sure you want to delete <strong>{product.product_name}</strong>? This action cannot be undone.
-        </p>
-        {/* Future OTP step could be inserted here */}
-        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            disabled={deleting}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 transition-colors flex items-center gap-2"
-          >
-            {deleting && <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-            {deleting ? "Deleting..." : "Delete"}
-          </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-xl w-full max-w-sm shadow-2xl overflow-hidden">
+        
+        {/* Header */}
+        <div className="bg-red-600 px-5 py-4 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-4 h-4">
+              <path fillRule="evenodd" d="M9 2a1 1 0 0 0-.894.553L7.382 4H4a1 1 0 0 0 0 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a1 1 0 1 0 0-2h-3.382l-.724-1.447A1 1 0 0 0 11 2H9ZM7 8a1 1 0 0 1 2 0v6a1 1 0 1 1-2 0V8Zm5-1a1 1 0 0 0-1 1v6a1 1 0 1 0 2 0V8a1 1 0 0 0-1-1Z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-white font-semibold text-base leading-tight">Delete Product</h3>
+            <p className="text-red-100 text-xs mt-0.5">This action cannot be undone</p>
+          </div>
+        </div>
+
+        <div className="p-5">
+          {/* ── STEP 1: Confirmation ─────────────────── */}
+          {step === "confirm" && (
+            <>
+              <p className="text-sm text-gray-600 mb-1">
+                You are about to permanently delete:
+              </p>
+              <p className="text-sm font-semibold text-gray-900 mb-4 line-clamp-2">
+                {product.product_name}
+              </p>
+              <p className="text-xs text-gray-500 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5">
+                ⚠️ A one-time password (OTP) will be sent to your registered email address to confirm this deletion.
+              </p>
+              {error && <p className="text-xs text-red-600 mb-3 bg-red-50 p-2 rounded">{error}</p>}
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  disabled={sending}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRequestOtp}
+                  disabled={sending}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  {sending && <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                  {sending ? "Sending OTP…" : "Send OTP"}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── STEP 2: OTP Entry ───────────────────── */}
+          {step === "otp" && (
+            <form onSubmit={handleVerify}>
+              <p className="text-sm text-gray-600 mb-1">
+                An OTP was sent to your email. Enter it below to confirm deletion of:
+              </p>
+              <p className="text-sm font-semibold text-gray-900 mb-5 line-clamp-2">
+                {product.product_name}
+              </p>
+
+              {/* OTP Input */}
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                Enter OTP
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={8}
+                value={otp}
+                onChange={e => { setOtp(e.target.value.replace(/\D/g, "")); setError(""); }}
+                placeholder="e.g. 123456"
+                autoFocus
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent mb-1.5"
+              />
+
+              {/* Error */}
+              {error && <p className="text-xs text-red-600 mb-3 bg-red-50 p-2 rounded">{error}</p>}
+
+              {/* Resend row */}
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-xs text-gray-400">
+                  {countdown > 0 ? `Resend in ${countdown}s` : "Didn't receive it?"}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={countdown > 0 || sending}
+                  className={[
+                    "text-xs font-medium transition-colors",
+                    countdown > 0 || sending
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-red-600 hover:text-red-800 underline cursor-pointer",
+                  ].join(" ")}
+                >
+                  {sending ? "Resending…" : "Resend OTP"}
+                </button>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={verifying}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={verifying || !otp.trim()}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {verifying && <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                  {verifying ? "Deleting…" : "Confirm Delete"}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>
