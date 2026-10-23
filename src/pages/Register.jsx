@@ -1,20 +1,15 @@
 /**
- * Register Page
+ * Register Page — Modern Split-Screen / Card Layout for Chatram
  *
- * Amazon-style white card on gray background.
- * - POST /api/register/ with all fields
+ * - POST /api/register/ with all fields + Buyer/Seller role selection cards
  * - Stores user in AuthContext on success and redirects to /
- * - Displays all API validation errors inline next to the relevant field
  */
 
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
-
-// ---------------------------------------------------------------------------
-// Reusable sub-components
-// ---------------------------------------------------------------------------
+import { SparkleIcon } from '../components/AIChatWidget'
 
 function FormField({
   id,
@@ -25,70 +20,95 @@ function FormField({
   error,
   autoComplete,
   hint,
+  placeholder,
 }) {
   return (
-    <div className="mb-4">
-      <label htmlFor={id} className="block text-sm font-semibold text-gray-800 mb-1">
+    <div className="mb-3.5">
+      <label htmlFor={id} className="block text-xs font-bold text-slate-700 mb-1">
         {label}
       </label>
-      {hint && <p className="text-xs text-gray-500 mb-1">{hint}</p>}
+      {hint && <p className="text-[11px] text-slate-400 mb-1">{hint}</p>}
       <input
         id={id}
         name={id}
         type={type}
         autoComplete={autoComplete}
+        placeholder={placeholder}
         value={value}
         onChange={onChange}
         className={[
-          'w-full px-3 py-2 text-sm rounded border bg-white',
+          'w-full px-3.5 py-2 text-sm rounded-xl border bg-slate-50/50 focus:bg-white',
           'outline-none transition-all duration-150',
-          'focus:border-[#e77600] focus:ring-[3px] focus:ring-[rgba(228,121,17,0.5)]',
-          error ? 'border-red-600' : 'border-gray-400',
+          'focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15',
+          error ? 'border-rose-500 bg-rose-50/30' : 'border-slate-300',
         ].join(' ')}
       />
       {error && (
-        <p className="mt-1 text-xs text-red-600 flex items-start gap-1">
-          <span className="mt-px">⚠</span> {error}
+        <p className="mt-1 text-xs font-medium text-rose-600 flex items-start gap-1">
+          <span>⚠</span> {error}
         </p>
       )}
     </div>
   )
 }
 
-function RoleRadio({ value, onChange, error }) {
+function RoleSelector({ value, onChange, error }) {
+  const roles = [
+    {
+      id: 'buyer',
+      icon: '🛍️',
+      title: 'Shopper (Buyer)',
+      desc: 'Browse products, use AI Copilot & place orders',
+    },
+    {
+      id: 'seller',
+      icon: '🏪',
+      title: 'Merchant (Seller)',
+      desc: 'List products, manage inventory & fulfil orders',
+    },
+  ]
+
   return (
     <div className="mb-4">
-      <p className="text-sm font-semibold text-gray-800 mb-2">I am a…</p>
-      <div className="flex gap-6">
-        {['buyer', 'seller'].map((role) => (
-          <label
-            key={role}
-            className="flex items-center gap-2 cursor-pointer text-sm text-gray-800"
-          >
-            <input
-              type="radio"
-              name="role_model"
-              value={role}
-              checked={value === role}
-              onChange={onChange}
-              className="accent-[#e77600] w-4 h-4 cursor-pointer"
-            />
-            <span className="capitalize">{role}</span>
-          </label>
-        ))}
+      <p className="text-xs font-bold text-slate-700 mb-2">Choose your account type</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {roles.map((r) => {
+          const active = value === r.id
+          return (
+            <label
+              key={r.id}
+              className={[
+                'flex items-start gap-2.5 p-3 rounded-2xl border-2 cursor-pointer transition-all',
+                active
+                  ? 'border-indigo-600 bg-indigo-50/40 shadow-2xs'
+                  : 'border-slate-200 hover:border-slate-300 bg-white',
+              ].join(' ')}
+            >
+              <input
+                type="radio"
+                name="role_model"
+                value={r.id}
+                checked={active}
+                onChange={onChange}
+                className="sr-only"
+              />
+              <span className="text-lg leading-none mt-0.5">{r.icon}</span>
+              <div>
+                <p className="text-xs font-bold text-slate-900">{r.title}</p>
+                <p className="text-[10px] text-slate-500 leading-snug mt-0.5">{r.desc}</p>
+              </div>
+            </label>
+          )
+        })}
       </div>
       {error && (
-        <p className="mt-1 text-xs text-red-600 flex items-start gap-1">
-          <span className="mt-px">⚠</span> {error}
+        <p className="mt-1 text-xs font-medium text-rose-600 flex items-start gap-1">
+          <span>⚠</span> {error}
         </p>
       )}
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 const INITIAL_FORM = {
   username: '',
@@ -100,7 +120,6 @@ const INITIAL_FORM = {
   role_model: 'buyer',
 }
 
-// Fields that the API can return errors for
 const API_FIELDS = [
   'username',
   'first_name',
@@ -130,7 +149,6 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault()
 
-    // Basic client-side guard
     if (form.password !== form.confirm_password) {
       setErrors((prev) => ({ ...prev, confirm_password: 'Passwords do not match.' }))
       return
@@ -142,7 +160,6 @@ export default function Register() {
 
     try {
       const { data } = await client.post('/api/register/', form)
-      // API returns { user: { id, username, email, role_model }, access, ... }
       login(data.user)
       navigate('/', { replace: true })
     } catch (err) {
@@ -152,7 +169,6 @@ export default function Register() {
         return
       }
 
-      // Map each API-returned field error
       const fieldErrors = {}
       let hasFieldErrors = false
       for (const field of API_FIELDS) {
@@ -165,7 +181,6 @@ export default function Register() {
         setErrors(fieldErrors)
       }
 
-      // Non-field errors
       const global = data.error || data.detail || data.non_field_errors
       if (global) {
         setGlobalError(Array.isArray(global) ? global[0] : global)
@@ -178,32 +193,71 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f3f3] flex flex-col items-center justify-start pt-10 px-4 pb-10">
-      {/* Logo */}
-      <div className="mb-6">
-        <span className="text-[28px] font-bold tracking-tight text-gray-900 font-serif">
-          🛒 ShopZone
-        </span>
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row">
+      {/* Left Brand Showcase Panel */}
+      <div className="hidden lg:flex lg:w-5/12 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-12 flex-col justify-between">
+        <div>
+          <Link to="/" className="inline-flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-amber-500 p-[1px]">
+              <div className="w-full h-full bg-slate-900 rounded-[11px] flex items-center justify-center">
+                <span className="text-xl font-extrabold text-white">C</span>
+              </div>
+            </div>
+            <span className="text-2xl font-extrabold tracking-tight text-white">Chatram</span>
+          </Link>
+        </div>
+
+        <div className="max-w-md space-y-5">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
+            <SparkleIcon className="w-3.5 h-3.5 text-amber-300" />
+            <span>Join Chatram Today</span>
+          </span>
+          <h2 className="text-3xl xl:text-4xl font-extrabold tracking-tight leading-tight">
+            One platform for AI-assisted shopping &amp; merchant growth.
+          </h2>
+          <p className="text-sm text-indigo-200/80 leading-relaxed">
+            Create a shopper account to use the AI-MCP Copilot, or register as a seller to launch your store in minutes.
+          </p>
+        </div>
+
+        <div className="text-xs text-slate-400">
+          © {new Date().getFullYear()} Chatram Commerce
+        </div>
       </div>
 
-      {/* Card */}
-      <div
-        className="bg-white border border-gray-300 rounded-lg px-8 pt-6 pb-7 w-full max-w-[400px]"
-        style={{ boxShadow: '0 2px 4px rgba(0,0,0,.13), 0 1px 1px rgba(0,0,0,.08)' }}
-      >
-        <h1 className="text-2xl font-medium text-gray-900 mb-5">Create account</h1>
-
-        {/* Global error banner */}
-        {globalError && (
-          <div className="mb-4 px-3 py-2 border border-red-400 rounded bg-red-50 text-sm text-red-700">
-            {globalError}
+      {/* Right Form Panel */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 sm:px-8">
+        <Link to="/" className="lg:hidden flex items-center gap-2.5 mb-6">
+          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-extrabold text-white">
+            C
           </div>
-        )}
+          <span className="text-2xl font-extrabold tracking-tight text-slate-900">Chatram</span>
+        </Link>
 
-        <form onSubmit={handleSubmit} noValidate>
-          {/* Name row */}
-          <div className="flex gap-3">
-            <div className="flex-1">
+        <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 w-full max-w-[480px] shadow-xl shadow-slate-900/5">
+          <div className="mb-5">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              Create your account
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">
+              Get started with Chatram in seconds
+            </p>
+          </div>
+
+          {globalError && (
+            <div className="mb-4 px-4 py-3 border border-rose-200 rounded-2xl bg-rose-50 text-xs font-medium text-rose-700">
+              {globalError}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} noValidate>
+            <RoleSelector
+              value={form.role_model}
+              onChange={handleChange}
+              error={errors.role_model}
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <FormField
                 id="first_name"
                 label="First name"
@@ -212,8 +266,6 @@ export default function Register() {
                 error={errors.first_name}
                 autoComplete="given-name"
               />
-            </div>
-            <div className="flex-1">
               <FormField
                 id="last_name"
                 label="Last name"
@@ -223,93 +275,65 @@ export default function Register() {
                 autoComplete="family-name"
               />
             </div>
-          </div>
 
-          <FormField
-            id="username"
-            label="Username"
-            value={form.username}
-            onChange={handleChange}
-            error={errors.username}
-            autoComplete="username"
-          />
+            <FormField
+              id="username"
+              label="Username"
+              value={form.username}
+              onChange={handleChange}
+              error={errors.username}
+              autoComplete="username"
+            />
 
-          <FormField
-            id="email"
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            error={errors.email}
-            autoComplete="email"
-          />
+            <FormField
+              id="email"
+              label="Email address"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              error={errors.email}
+              autoComplete="email"
+            />
 
-          <FormField
-            id="password"
-            label="Password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            error={errors.password}
-            autoComplete="new-password"
-            hint="At least 8 characters"
-          />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField
+                id="password"
+                label="Password"
+                type="password"
+                value={form.password}
+                onChange={handleChange}
+                error={errors.password}
+                autoComplete="new-password"
+                hint="Min. 8 characters"
+              />
+              <FormField
+                id="confirm_password"
+                label="Confirm password"
+                type="password"
+                value={form.confirm_password}
+                onChange={handleChange}
+                error={errors.confirm_password}
+                autoComplete="new-password"
+                hint="Must match"
+              />
+            </div>
 
-          <FormField
-            id="confirm_password"
-            label="Re-enter password"
-            type="password"
-            value={form.confirm_password}
-            onChange={handleChange}
-            error={errors.confirm_password}
-            autoComplete="new-password"
-          />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 py-3 px-4 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20 disabled:opacity-60 disabled:cursor-not-allowed transition-all cursor-pointer"
+            >
+              {loading ? 'Creating account…' : 'Create Chatram Account'}
+            </button>
+          </form>
 
-          <RoleRadio
-            value={form.role_model}
-            onChange={handleChange}
-            error={errors.role_model}
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={[
-              'w-full mt-1 py-2 px-4 rounded text-sm font-medium',
-              'border border-[#a88734] border-b-[#8d6e01]',
-              'bg-gradient-to-b from-[#f7dfa5] to-[#f0c14b]',
-              'text-gray-900 cursor-pointer',
-              'hover:bg-gradient-to-b hover:from-[#f5d78e] hover:to-[#eeb933]',
-              'active:shadow-inner',
-              'focus:outline-none focus:ring-2 focus:ring-[#e77600]',
-              'disabled:opacity-60 disabled:cursor-not-allowed',
-              'transition-all duration-100',
-            ].join(' ')}
-          >
-            {loading ? 'Creating account…' : 'Create your ShopZone account'}
-          </button>
-        </form>
-
-        {/* Legal blurb */}
-        <p className="mt-4 text-[11px] text-gray-600 leading-4">
-          By creating an account, you agree to ShopZone's{' '}
-          <a href="#" className="text-[#0066c0] hover:text-[#c7511f] hover:underline">
-            Conditions of Use
-          </a>{' '}
-          and{' '}
-          <a href="#" className="text-[#0066c0] hover:text-[#c7511f] hover:underline">
-            Privacy Notice
-          </a>
-          .
-        </p>
-      </div>
-
-      {/* Already have account */}
-      <div className="mt-5 text-sm text-gray-700">
-        Already have an account?{' '}
-        <Link to="/login" className="text-[#0066c0] hover:text-[#c7511f] hover:underline">
-          Sign in
-        </Link>
+          <p className="mt-5 text-center text-xs text-slate-500">
+            Already have an account?{' '}
+            <Link to="/login" className="text-indigo-600 font-bold hover:underline">
+              Sign in →
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

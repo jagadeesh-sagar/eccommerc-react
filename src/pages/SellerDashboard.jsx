@@ -80,6 +80,7 @@ function SearchableSelect({ items = [], searchUrl, value, onChange, placeholder 
   // Fetch initial page on open
   useEffect(() => {
     if (open && searchUrl && dynamicItems.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchDynamicItems("", 1, false);
     }
   }, [open, searchUrl, dynamicItems.length, fetchDynamicItems]);
@@ -245,9 +246,9 @@ function Field({ label, error, required, children }) {
 
 const inputCls = (err) =>
   [
-    "w-full px-3 py-2 text-sm border rounded outline-none transition-all",
-    "focus:border-[#e77600] focus:ring-[3px] focus:ring-[rgba(228,121,17,0.5)]",
-    err ? "border-red-500" : "border-gray-400",
+    "w-full px-3.5 py-2 text-sm border rounded-xl outline-none transition-all bg-white",
+    "focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20",
+    err ? "border-rose-500" : "border-slate-300",
   ].join(" ");
 
 function useSellerCheck() {
@@ -282,16 +283,16 @@ const TABS = ["Products", "Create Product", "Brands", "Q&A", "Orders"];
 
 function TabBar({ active, onChange }) {
   return (
-    <div className="flex overflow-x-auto scrollbar-none border-b border-gray-200 mb-6">
+    <div className="flex overflow-x-auto no-scrollbar gap-1.5 border-b border-slate-200 pb-3 mb-6">
       {TABS.map((t) => (
         <button
           key={t}
           onClick={() => onChange(t)}
           className={[
-            "flex-shrink-0 px-5 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap",
+            "flex-shrink-0 px-4 py-2 text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer",
             active === t
-              ? "border-[#e77600] text-[#c7511f]"
-              : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300",
+              ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/20"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100",
           ].join(" ")}
         >
           {t}
@@ -529,7 +530,7 @@ function ManageMediaModal({ product, onClose }) {
     try {
       await client.delete('/user/product/image/', { data: { image_id: mediaId } });
       setMedia(prev => prev.filter(m => m.id !== mediaId));
-    } catch (err) {
+    } catch {
       alert("Failed to delete media.");
     } finally {
       setDeletingId(null);
@@ -555,7 +556,7 @@ function ManageMediaModal({ product, onClose }) {
       await client.post('/user/product/image/', payload);
       // Optimistically update
       setMedia(prev => prev.map(img => ({ ...img, is_primary: img.id === m.id })));
-    } catch (err) {
+    } catch {
       alert("Failed to set primary.");
     } finally {
       setSettingPrimaryId(null);
@@ -671,6 +672,7 @@ function ProductsTab() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProducts();
   }, []);
 
@@ -925,7 +927,7 @@ function ImageUploadStep({ productId, productName, onCreateAnother, onGoToDashbo
   function sanitizeFilename(file) {
     const safeName = file.name
       .replace(/\s+/g, '_')          // spaces → underscore
-      .replace(/[%#+?&=<>{}|\\^~\[\]`]/g, '_') // other S3-unsafe chars
+      .replace(/[%#+?&=<>{}|\\^~[\]`]/g, '_') // other S3-unsafe chars
       .replace(/_+/g, '_')           // collapse consecutive underscores
       .replace(/^_|_$/g, '')         // strip leading/trailing underscores
     if (safeName === file.name) return file  // no change needed
@@ -2513,22 +2515,28 @@ export default function SellerDashboard() {
 
   if (sellerStatus === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center text-sm font-medium text-slate-500">
+          Loading Seller Hub…
+        </div>
       </div>
     );
   }
 
   if (sellerStatus === "none") {
     return (
-      <div className="min-h-screen bg-[#eaeded]">
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col">
         <Header />
 
-        <div className="max-w-xl mx-auto mt-10 bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-semibold mb-4">Become a Seller</h1>
+        <div className="max-w-lg w-full mx-auto mt-12 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-3">
+            Chatram Seller Hub
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-1.5">Become a Chatram Seller</h1>
 
-          <p className="text-gray-600 mb-6">
-            Register your business before creating products.
+          <p className="text-sm text-slate-500 mb-6">
+            Register your business details below to list products, manage inventory, and answer customer Q&amp;A.
           </p>
 
           <SellerRegistrationForm onSuccess={() => window.location.reload()} />
@@ -2537,25 +2545,32 @@ export default function SellerDashboard() {
     );
   }
 
-  // ← KEEP YOUR ORIGINAL DASHBOARD RETURN HERE
-
   return (
-    <div className="min-h-screen bg-[#eaeded] flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
       <Header />
 
-      <main className="flex-1 max-w-screen-xl mx-auto w-full px-3 sm:px-6 py-6">
-        <div className="flex items-center justify-between mb-5">
+      <main className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Seller Dashboard
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-1.5">
+              Merchant Portal
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              Seller Hub
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Manage your products, brands, and customer Q&A
+            <p className="text-sm text-slate-500 mt-0.5">
+              Manage your catalog, S3 media, brands, customer Q&amp;A, and live order fulfillment
             </p>
           </div>
+          <button
+            onClick={() => setActiveTab("Create Product")}
+            className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+          >
+            <span>+ New Product</span>
+          </button>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 min-h-[500px]">
+        <div className="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-5 sm:p-7 min-h-[540px]">
           <TabBar active={activeTab} onChange={setActiveTab} />
 
           {activeTab === "Products" && <ProductsTab />}

@@ -45,10 +45,11 @@ import client from '../api/client'
 // localStorage helpers  (only non-sensitive display data — NOT the JWT)
 // ---------------------------------------------------------------------------
 
+/* eslint-disable react-refresh/only-export-components */
 const STORAGE_KEY = 'shopnest_user'
 
 export function persistUser(userData) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(userData)) } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(userData)) } catch { /* ignore */ }
 }
 
 export function loadPersistedUser() {
@@ -59,7 +60,7 @@ export function loadPersistedUser() {
 }
 
 export function clearPersistedUser() {
-  try { localStorage.removeItem(STORAGE_KEY) } catch {}
+  try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
 }
 
 // ---------------------------------------------------------------------------
@@ -72,13 +73,8 @@ export function AuthProvider({ children }) {
   // Restore synchronously from localStorage — no loading spinner needed.
   const [user, setUser] = useState(() => loadPersistedUser())
 
-  // authReady flips to true after the first render so route guards can
-  // distinguish "not yet hydrated" from "definitely not logged in".
-  const [authReady, setAuthReady] = useState(false)
-
-  useEffect(() => {
-    setAuthReady(true)
-  }, [])
+  // authReady is true once the initial synchronous localStorage restore is done
+  const [authReady] = useState(true)
 
   // ── Listen for forced logout triggered by the axios interceptor ───────────
   // When the refresh token itself is expired, the interceptor can't auto-
@@ -116,7 +112,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = useCallback(async () => {
-    try { await client.post('/api/logout/') } catch {}
+    try { await client.post('/api/logout/') } catch { /* ignore */ }
     clearPersistedUser()
     setUser(null)
   }, [])

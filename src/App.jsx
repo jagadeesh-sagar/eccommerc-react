@@ -2,22 +2,23 @@ import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
+import { AIChatProvider, useAIChat } from './context/AIChatContext'
 import { fetchCSRF } from './utils/csrf'
 
 import Footer from './components/Footer'
 import AIChatWidget from './components/AIChatWidget'
 
 // Lazy-load all pages so each becomes its own chunk — reduces initial JS bundle
-const Login            = lazy(() => import('./pages/Login'))
-const Register         = lazy(() => import('./pages/Register'))
-const Home             = lazy(() => import('./pages/Home'))
-const ProductDetail    = lazy(() => import('./pages/ProductDetail'))
-const Cart             = lazy(() => import('./pages/Cart'))
-const Checkout         = lazy(() => import('./pages/Checkout'))
-const Orders           = lazy(() => import('./pages/Orders'))
-const OrderConfirmation= lazy(() => import('./pages/OrderConfirmation'))
-const Wishlist         = lazy(() => import('./pages/Wishlist'))
-const SellerDashboard  = lazy(() => import('./pages/SellerDashboard'))
+const Login             = lazy(() => import('./pages/Login'))
+const Register          = lazy(() => import('./pages/Register'))
+const Home              = lazy(() => import('./pages/Home'))
+const ProductDetail     = lazy(() => import('./pages/ProductDetail'))
+const Cart              = lazy(() => import('./pages/Cart'))
+const Checkout          = lazy(() => import('./pages/Checkout'))
+const Orders            = lazy(() => import('./pages/Orders'))
+const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'))
+const Wishlist          = lazy(() => import('./pages/Wishlist'))
+const SellerDashboard   = lazy(() => import('./pages/SellerDashboard'))
 
 // ---------------------------------------------------------------------------
 // Full-page loading spinner (shown while session restore is in-flight)
@@ -25,11 +26,13 @@ const SellerDashboard  = lazy(() => import('./pages/SellerDashboard'))
 
 function AuthLoadingScreen() {
   return (
-    <div className="min-h-screen bg-[#eaecf0] flex items-center justify-center">
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        {/* Spinning ring */}
-        <div className="w-12 h-12 rounded-full border-4 border-[#febd69] border-t-transparent animate-spin" />
-        <p className="text-sm text-[#555]">Loading…</p>
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 rounded-full border-4 border-indigo-100" />
+          <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">Loading Chatram…</p>
       </div>
     </div>
   )
@@ -90,21 +93,30 @@ function SellerRoute({ children }) {
   if (!isAuthenticated) {
     return <Navigate to={`/login?next=${encodeURIComponent(location.pathname)}`} replace />
   }
-  
+
   // We don't block buyers here because SellerDashboard handles rendering the registration form.
   return children
 }
 
 // ---------------------------------------------------------------------------
-// Layout wrapper — Header rendered by each page; Footer shown globally
+// Layout wrapper — Header rendered by pages; Footer & AI Copilot shown globally
 // ---------------------------------------------------------------------------
 
 function Layout({ children }) {
+  const { isOpen, isDocked } = useAIChat()
+  const location = useLocation()
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register'
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-1">{children}</main>
-      <Footer />
-      {/* AI Shopping Assistant — floats above all pages */}
+    <div
+      className={[
+        'flex flex-col min-h-screen bg-[#f8fafc] text-slate-900 transition-[padding] duration-300',
+        isOpen && isDocked ? 'lg:pr-[420px]' : '',
+      ].join(' ')}
+    >
+      <main className="flex-1 flex flex-col">{children}</main>
+      {!isAuthPage && <Footer />}
+      {/* AI-MCP Shopping Copilot — floating popover or docked sidebar */}
       <AIChatWidget />
     </div>
   )
@@ -119,81 +131,81 @@ function AppRoutes() {
     <Layout>
       <Suspense fallback={<AuthLoadingScreen />}>
         <Routes>
-        {/* ── Auth pages (redirect away when already logged in) ── */}
-        <Route
-          path="/login"
-          element={
-            <GuestRoute>
-              <Login />
-            </GuestRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <GuestRoute>
-              <Register />
-            </GuestRoute>
-          }
-        />
+          {/* ── Auth pages (redirect away when already logged in) ── */}
+          <Route
+            path="/login"
+            element={
+              <GuestRoute>
+                <Login />
+              </GuestRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <GuestRoute>
+                <Register />
+              </GuestRoute>
+            }
+          />
 
-        {/* ── Public pages ── */}
-        <Route path="/" element={<Home />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
+          {/* ── Public pages ── */}
+          <Route path="/" element={<Home />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
 
-        {/* ── Buyer-only pages ── */}
-        <Route
-          path="/cart"
-          element={
-            <BuyerRoute>
-              <Cart />
-            </BuyerRoute>
-          }
-        />
-        <Route
-          path="/checkout"
-          element={
-            <BuyerRoute>
-              <Checkout />
-            </BuyerRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <BuyerRoute>
-              <Orders />
-            </BuyerRoute>
-          }
-        />
-        <Route
-          path="/order-confirmation"
-          element={
-            <BuyerRoute>
-              <OrderConfirmation />
-            </BuyerRoute>
-          }
-        />
-        <Route
-          path="/wishlist"
-          element={
-            <BuyerRoute>
-              <Wishlist />
-            </BuyerRoute>
-          }
-        />
+          {/* ── Buyer-only pages ── */}
+          <Route
+            path="/cart"
+            element={
+              <BuyerRoute>
+                <Cart />
+              </BuyerRoute>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <BuyerRoute>
+                <Checkout />
+              </BuyerRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <BuyerRoute>
+                <Orders />
+              </BuyerRoute>
+            }
+          />
+          <Route
+            path="/order-confirmation"
+            element={
+              <BuyerRoute>
+                <OrderConfirmation />
+              </BuyerRoute>
+            }
+          />
+          <Route
+            path="/wishlist"
+            element={
+              <BuyerRoute>
+                <Wishlist />
+              </BuyerRoute>
+            }
+          />
 
-        {/* ── Seller-only pages ── */}
-        <Route
-          path="/seller"
-          element={
-            <SellerRoute>
-              <SellerDashboard />
-            </SellerRoute>
-          }
-        />
+          {/* ── Seller-only pages ── */}
+          <Route
+            path="/seller"
+            element={
+              <SellerRoute>
+                <SellerDashboard />
+              </SellerRoute>
+            }
+          />
 
-        {/* ── Catch-all ── */}
+          {/* ── Catch-all ── */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
@@ -216,7 +228,9 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <AppRoutes />
+          <AIChatProvider>
+            <AppRoutes />
+          </AIChatProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

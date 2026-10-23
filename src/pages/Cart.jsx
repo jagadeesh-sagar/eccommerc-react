@@ -1,23 +1,18 @@
 /**
  * Cart — /cart  (protected: buyers only)
  *
- * Amazon-style two-column layout:
- *   Left  (flex-1) — list of cart line-items with quantity stepper + delete
- *   Right (sidebar) — sticky Order Summary with subtotal + Proceed to Buy
- *
- * Empty state: illustration + "Your ShoppingCart is empty" + Continue shopping
- *
- * API calls:
- *   GET    /user/cart/
- *   PATCH  /user/cart/                             ← update quantity
- *   DELETE /user/cart/?product=<id>&variant=<id>   ← remove item
+ * Modern two-column layout:
+ *   Left  (flex-1) — list of cart line-items with pill quantity stepper + delete + save to wishlist
+ *   Right (sidebar) — sticky Order Summary with subtotal + Proceed to Checkout + AI Cart Review
  */
 
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
+import { SparkleIcon } from '../components/AIChatWidget'
 import client from '../api/client'
 import { useCart } from '../context/CartContext'
+import { useAIChat } from '../context/AIChatContext'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -29,19 +24,13 @@ function formatPrice(num) {
 }
 
 function pseudoColor(str = '') {
-  const palette = ['#dbeafe', '#fce7f3', '#d1fae5', '#fef3c7', '#ede9fe', '#fee2e2', '#cffafe']
+  const palette = ['#eef2ff', '#fae8ff', '#ecfdf5', '#fffbeb', '#f5f3ff', '#fff1f2', '#ecfeff']
   let h = 0
   for (const c of str) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff
   return palette[Math.abs(h) % palette.length]
 }
 
-/**
- * Resolve total line price for a cart item.
- * Uses server-supplied `cartprice` (already price × qty).
- * Falls back to variant price × quantity when cartprice is absent.
- */
 function resolveCartPrice(item) {
-  // Backend field is `cartprice` (no underscore)
   if (item.cartprice != null) return parseFloat(item.cartprice)
   const variants = item.product?.variants ?? []
   if (item.product_variant) {
@@ -49,19 +38,16 @@ function resolveCartPrice(item) {
     if (v) return parseFloat(v.price) * item.quantity
   }
   if (variants.length > 0) return parseFloat(variants[0].price) * item.quantity
+  if (item.product?.base_price) return parseFloat(item.product.base_price) * item.quantity
   return null
 }
 
-/** Unit price = line total ÷ qty (for the "₹X each" sub-label) */
 function resolveUnitPrice(item) {
   const lineTotal = resolveCartPrice(item)
   if (lineTotal == null) return null
   return lineTotal / (item.quantity || 1)
 }
 
-/**
- * Get the human-readable variant label for a line-item, e.g. "Blue / XL".
- */
 function variantLabel(item) {
   const variants = item.product?.variants ?? []
   if (!item.product_variant) return null
@@ -71,19 +57,19 @@ function variantLabel(item) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Skeleton
+// Skeleton & Empty State
 // ─────────────────────────────────────────────────────────────────────────────
 
 function CartSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex gap-4 p-4 bg-white rounded-lg border border-gray-200">
-          <div className="w-24 h-24 bg-gray-200 rounded flex-shrink-0" />
-          <div className="flex-1 space-y-2 py-1">
-            <div className="h-4 bg-gray-200 rounded w-2/3" />
-            <div className="h-3 bg-gray-200 rounded w-1/3" />
-            <div className="h-5 bg-gray-200 rounded w-1/4 mt-3" />
+        <div key={i} className="flex gap-4 p-5 bg-white rounded-2xl border border-slate-200/80">
+          <div className="w-24 h-24 bg-slate-100 rounded-xl shrink-0" />
+          <div className="flex-1 space-y-2.5 py-1">
+            <div className="h-4 bg-slate-100 rounded-md w-2/3" />
+            <div className="h-3 bg-slate-100 rounded-md w-1/3" />
+            <div className="h-5 bg-slate-100 rounded-md w-1/4 mt-3" />
           </div>
         </div>
       ))}
@@ -91,95 +77,64 @@ function CartSkeleton() {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Empty-cart illustration
-// ─────────────────────────────────────────────────────────────────────────────
-
-function EmptyCart() {
+function EmptyCart({ onAskAI }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      {/* SVG shopping cart illustration */}
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 240 180"
-        className="w-52 h-40 mb-6"
-        aria-hidden="true"
-      >
-        {/* Background circle */}
-        <circle cx="120" cy="90" r="80" fill="#f0f2f2" />
-        {/* Cart body */}
-        <rect x="70" y="70" width="100" height="60" rx="8" fill="#fff" stroke="#d5d9d9" strokeWidth="2" />
-        {/* Cart handle */}
-        <path d="M55 55 L70 70" stroke="#adb5bd" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="52" cy="52" r="5" fill="#adb5bd" />
-        {/* Wheels */}
-        <circle cx="90" cy="136" r="8" fill="#fff" stroke="#d5d9d9" strokeWidth="2" />
-        <circle cx="150" cy="136" r="8" fill="#fff" stroke="#d5d9d9" strokeWidth="2" />
-        {/* Items inside */}
-        <rect x="85" y="82" width="28" height="32" rx="4" fill="#febd69" opacity="0.7" />
-        <rect x="120" y="88" width="36" height="26" rx="4" fill="#ff9900" opacity="0.5" />
-        {/* Sad face */}
-        <circle cx="120" cy="55" r="14" fill="#fff" stroke="#d5d9d9" strokeWidth="1.5" />
-        <circle cx="115" cy="52" r="1.5" fill="#6c757d" />
-        <circle cx="125" cy="52" r="1.5" fill="#6c757d" />
-        <path d="M115 60 Q120 56 125 60" stroke="#6c757d" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-      </svg>
-
-      <h2 className="text-2xl font-semibold text-gray-800 mb-1">
-        Your Shopping Cart is empty
-      </h2>
-      <p className="text-sm text-gray-500 mb-6 max-w-xs">
-        You have no items in your cart. Start adding products you love!
+    <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 text-3xl border border-indigo-100">
+        🛒
+      </div>
+      <h2 className="text-xl font-extrabold text-slate-900 mb-1.5">Your Shopping Cart is empty</h2>
+      <p className="text-sm text-slate-500 mb-6 max-w-sm">
+        Browse our storefront or ask the Chatram AI Copilot to recommend products and add them directly to your cart.
       </p>
-      <Link
-        to="/"
-        className="px-6 py-2.5 rounded text-sm font-medium border border-[#a88734] bg-gradient-to-b from-[#f7dfa5] to-[#f0c14b] hover:from-[#f5d78e] hover:to-[#eeb933] text-gray-900 transition-all shadow-sm"
-      >
-        Continue Shopping
-      </Link>
-
-      {/* Sign-in prompt (Amazon shows this too) */}
-      <div className="mt-8 border-t border-gray-200 pt-6 w-full max-w-sm text-center">
-        <p className="text-sm text-gray-600">
-          Have an account?{' '}
-          <Link to="/login" className="text-[#007185] hover:text-[#c7511f] hover:underline font-medium">
-            Sign in
-          </Link>{' '}
-          to see your saved items.
-        </p>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <Link
+          to="/"
+          className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-indigo-600 text-white transition-colors shadow-xs"
+        >
+          Browse Products →
+        </Link>
+        <button
+          onClick={onAskAI}
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 transition-colors cursor-pointer"
+        >
+          <SparkleIcon className="w-3.5 h-3.5" />
+          <span>Ask AI for Ideas</span>
+        </button>
       </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Cart line-item
+// Cart Line Item
 // ─────────────────────────────────────────────────────────────────────────────
 
-function CartItem({ item, onQuantityChange, onDelete }) {
-  const product    = item.product ?? {}
-  const lineTotal  = resolveCartPrice(item)   // total for this line (from cart_price)
-  const unitPrice  = resolveUnitPrice(item)   // per-unit price (lineTotal / qty)
-  const label      = variantLabel(item)
-  const bg        = pseudoColor(product.product_name ?? '')
+function CartItem({ item, onQuantityChange, onDelete, onSaveForLater }) {
+  const product = item.product ?? {}
+  const lineTotal = resolveCartPrice(item)
+  const unitPrice = resolveUnitPrice(item)
+  const label = variantLabel(item)
+  const bg = pseudoColor(product.product_name ?? '')
   const primaryImg = (product.images ?? []).find((i) => i.is_primary) ?? (product.images ?? [])[0]
 
-  const [qty, setQty]             = useState(item.quantity)
-  const [updatingQty, setUpdQty]  = useState(false)
-  const [deleting, setDeleting]   = useState(false)
+  const [qty, setQty] = useState(item.quantity)
+  const [updatingQty, setUpdQty] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
-  // Sync when parent refreshes
-  useEffect(() => { setQty(item.quantity) }, [item.quantity])
+  useEffect(() => {
+    setQty(item.quantity)
+  }, [item.quantity])
 
   async function handleQtyChange(newQty) {
     if (newQty < 1 || newQty === qty || updatingQty) return
     setUpdQty(true)
     const prev = qty
-    setQty(newQty)          // optimistic
+    setQty(newQty)
     try {
       await onQuantityChange(item, newQty)
     } catch {
-      setQty(prev)           // rollback on error
+      setQty(prev)
     } finally {
       setUpdQty(false)
     }
@@ -197,119 +152,113 @@ function CartItem({ item, onQuantityChange, onDelete }) {
   return (
     <div
       className={[
-        'flex gap-4 p-4 bg-white rounded-lg border transition-opacity',
-        deleting ? 'opacity-40 pointer-events-none border-gray-200' : 'border-gray-200',
+        'flex flex-col sm:flex-row gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs transition-all',
+        deleting ? 'opacity-40 pointer-events-none' : 'hover:border-slate-300',
       ].join(' ')}
     >
-      {/* Thumbnail */}
-      <Link to={`/product/${product.id}`} className="flex-shrink-0">
-        <div
-          className="w-24 h-24 sm:w-28 sm:h-28 rounded border border-gray-100 flex items-center justify-center overflow-hidden"
-          style={{ backgroundColor: primaryImg ? '#fff' : bg }}
-        >
-          {primaryImg ? (
-            <img
-              src={primaryImg.image_url}
-              alt={primaryImg.alt_text || product.product_name}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <span className="text-3xl font-extrabold text-gray-300 select-none">
-              {(product.product_name ?? '?')[0].toUpperCase()}
-            </span>
-          )}
-        </div>
-      </Link>
-
-      {/* Details */}
-      <div className="flex-1 min-w-0 flex flex-col">
-        {/* Name */}
-        <Link
-          to={`/product/${product.id}`}
-          className="text-sm font-medium text-gray-800 hover:text-[#c7511f] line-clamp-2 leading-snug mb-1"
-        >
-          {product.product_name}
+      <div className="flex gap-4 flex-1 min-w-0">
+        {/* Thumbnail */}
+        <Link to={`/product/${product.id}`} className="shrink-0">
+          <div
+            className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl border border-slate-100 flex items-center justify-center overflow-hidden p-2"
+            style={{ backgroundColor: primaryImg ? '#ffffff' : bg }}
+          >
+            {primaryImg ? (
+              <img
+                src={primaryImg.image_url}
+                alt={primaryImg.alt_text || product.product_name}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <span className="text-3xl font-extrabold text-slate-300 select-none">
+                {(product.product_name ?? '?')[0].toUpperCase()}
+              </span>
+            )}
+          </div>
         </Link>
 
-        {/* Brand / Category */}
-        <p className="text-xs text-gray-400 mb-0.5">
-          {product.brand_name}
-          {product.category_name && <> · {product.category_name}</>}
-        </p>
-
-        {/* Variant label */}
-        {label && (
-          <p className="text-xs text-gray-500 mb-1">
-            <span className="font-medium">Variant:</span> {label}
-          </p>
-        )}
-
-        {/* Seller */}
-        {product.seller_name && (
-          <p className="text-xs text-gray-400 mb-2">
-            Sold by <span className="text-[#007185]">{product.seller_name}</span>
-          </p>
-        )}
-
-        {/* Stock hint */}
-        <p className="text-xs text-[#007600] font-medium mb-3">In Stock</p>
-
-        {/* Controls row */}
-        <div className="flex items-center flex-wrap gap-3 mt-auto">
-          {/* Quantity stepper */}
-          <div className="flex items-center rounded border border-gray-300 overflow-hidden h-8 text-sm select-none">
-            <button
-              onClick={() => handleQtyChange(qty - 1)}
-              disabled={qty <= 1 || updatingQty}
-              aria-label="Decrease quantity"
-              className="px-3 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 border-r border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold text-base"
-            >
-              −
-            </button>
-            <span className="px-4 h-full flex items-center justify-center min-w-[3rem] font-medium text-gray-800 bg-white">
-              {updatingQty ? (
-                <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              ) : qty}
+        {/* Details */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex items-center gap-2 mb-1">
+            {product.brand_name && (
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                {product.brand_name}
+              </span>
+            )}
+            <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+              In Stock
             </span>
-            <button
-              onClick={() => handleQtyChange(qty + 1)}
-              disabled={updatingQty}
-              aria-label="Increase quantity"
-              className="px-3 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 border-l border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold text-base"
-            >
-              +
-            </button>
           </div>
 
-          {/* Separator */}
-          <span className="text-gray-300 text-sm">|</span>
-
-          {/* Delete */}
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="text-sm text-[#007185] hover:text-[#c7511f] hover:underline disabled:opacity-50 transition-colors"
+          <Link
+            to={`/product/${product.id}`}
+            className="text-sm sm:text-base font-bold text-slate-900 hover:text-indigo-600 line-clamp-2 leading-snug mb-1 transition-colors"
           >
-            {deleting ? 'Removing…' : 'Delete'}
-          </button>
+            {product.product_name}
+          </Link>
 
-          {/* Separator */}
-          <span className="text-gray-300 text-sm hidden sm:inline">|</span>
+          {label && (
+            <p className="text-xs text-slate-500 mb-1">
+              <span className="font-semibold text-slate-700">Option:</span> {label}
+            </p>
+          )}
 
-          {/* Save for later (visual-only, Amazon pattern) */}
-          <button className="text-sm text-[#007185] hover:text-[#c7511f] hover:underline hidden sm:inline transition-colors">
-            Save for later
-          </button>
+          {product.seller_name && (
+            <p className="text-xs text-slate-400 mb-3">
+              Sold by <span className="text-slate-600 font-medium">{product.seller_name}</span>
+            </p>
+          )}
+
+          {/* Controls Row */}
+          <div className="flex items-center flex-wrap gap-3 mt-auto pt-1">
+            {/* Pill Stepper */}
+            <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5 h-8 text-xs select-none">
+              <button
+                onClick={() => handleQtyChange(qty - 1)}
+                disabled={qty <= 1 || updatingQty}
+                aria-label="Decrease quantity"
+                className="w-7 h-full rounded-lg flex items-center justify-center hover:bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold cursor-pointer"
+              >
+                −
+              </button>
+              <span className="px-3 h-full flex items-center justify-center min-w-[2.25rem] font-mono font-bold text-slate-900">
+                {updatingQty ? '…' : qty}
+              </span>
+              <button
+                onClick={() => handleQtyChange(qty + 1)}
+                disabled={updatingQty}
+                aria-label="Increase quantity"
+                className="w-7 h-full rounded-lg flex items-center justify-center hover:bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold cursor-pointer"
+              >
+                +
+              </button>
+            </div>
+
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+            >
+              {deleting ? 'Removing…' : 'Remove'}
+            </button>
+
+            <button
+              onClick={() => onSaveForLater(item)}
+              className="text-xs font-semibold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+            >
+              ♡ Move to Wishlist
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Line total price (right-aligned) */}
-      <div className="flex-shrink-0 text-right">
-        <p className="text-base font-bold text-gray-900">
+      {/* Line Total Price */}
+      <div className="sm:text-right flex sm:flex-col items-baseline sm:items-end justify-between border-t sm:border-t-0 border-slate-100 pt-2 sm:pt-0 shrink-0">
+        <p className="text-lg font-extrabold font-mono text-slate-900">
           {lineTotal != null ? formatPrice(lineTotal) : '—'}
         </p>
         {qty > 1 && unitPrice != null && (
-          <p className="text-xs text-gray-400 mt-0.5">{formatPrice(unitPrice)} each</p>
+          <p className="text-xs font-mono text-slate-400 mt-0.5">{formatPrice(unitPrice)} each</p>
         )}
       </div>
     </div>
@@ -317,10 +266,10 @@ function CartItem({ item, onQuantityChange, onDelete }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Order Summary sidebar
+// Order Summary Sidebar
 // ─────────────────────────────────────────────────────────────────────────────
 
-function OrderSummary({ items, onProceed }) {
+function OrderSummary({ items, onProceed, onAskAIReview }) {
   const subtotal = items.reduce((sum, item) => {
     const price = resolveCartPrice(item)
     return sum + (price != null ? price : 0)
@@ -329,72 +278,70 @@ function OrderSummary({ items, onProceed }) {
   const totalItems = items.reduce((s, item) => s + item.quantity, 0)
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-5 sticky top-[120px]">
-      {/* Subtotal header */}
-      <p className="text-lg font-medium text-gray-900 mb-1">
-        Subtotal ({totalItems} {totalItems === 1 ? 'item' : 'items'}):
-        <span className="font-bold text-gray-900 ml-2">{formatPrice(subtotal)}</span>
-      </p>
+    <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-2xs sticky top-28 space-y-5">
+      <div>
+        <h2 className="text-base font-extrabold text-slate-900 mb-1">Order Summary</h2>
+        <p className="text-xs text-slate-500">
+          {totalItems} {totalItems === 1 ? 'item' : 'items'} in your cart
+        </p>
+      </div>
 
-      {/* Gift option (visual, Amazon pattern) */}
-      <label className="flex items-center gap-2 text-xs text-gray-600 mb-4 cursor-pointer">
-        <input type="checkbox" className="accent-[#e77600]" />
-        This order contains a gift
-      </label>
-
-      {/* Proceed to Buy */}
-      <button
-        onClick={onProceed}
-        className={[
-          'w-full py-2.5 px-4 rounded-full text-sm font-medium transition-all shadow-sm',
-          'border border-[#a88734]',
-          'bg-gradient-to-b from-[#f7dfa5] to-[#f0c14b]',
-          'hover:from-[#f5d78e] hover:to-[#eeb933]',
-          'text-gray-900',
-          'focus:outline-none focus:ring-2 focus:ring-[#e77600]',
-        ].join(' ')}
-      >
-        Proceed to Buy
-      </button>
-
-      {/* Savings line */}
-      <div className="mt-4 pt-4 border-t border-gray-100 space-y-1 text-sm text-gray-600">
+      <div className="space-y-2.5 text-sm text-slate-600 border-t border-slate-100 pt-4">
         <div className="flex justify-between">
-          <span>Items ({totalItems}):</span>
-          <span>{formatPrice(subtotal)}</span>
+          <span>Items Subtotal</span>
+          <span className="font-mono font-semibold text-slate-800">{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between">
-          <span>Delivery:</span>
-          <span className="text-[#007600] font-medium">FREE</span>
+          <span>Standard Delivery</span>
+          <span className="text-emerald-600 font-bold">FREE</span>
         </div>
-        <div className="flex justify-between font-bold text-gray-900 text-base pt-2 border-t border-gray-100 mt-2">
-          <span>Order Total:</span>
-          <span>{formatPrice(subtotal)}</span>
+        <div className="flex justify-between items-baseline font-extrabold text-slate-900 text-lg pt-3 border-t border-slate-200/80">
+          <span>Estimated Total</span>
+          <span className="font-mono text-xl">{formatPrice(subtotal)}</span>
         </div>
       </div>
 
-      {/* EMI teaser */}
-      <p className="mt-3 text-xs text-gray-400 text-center">
-        EMI available on orders above ₹3,000
-      </p>
+      <button
+        onClick={onProceed}
+        className="w-full py-3.5 px-5 rounded-2xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20 transition-all active:scale-[0.99] cursor-pointer"
+      >
+        Proceed to Checkout →
+      </button>
+
+      <button
+        onClick={onAskAIReview}
+        className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/70 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+      >
+        <SparkleIcon className="w-3.5 h-3.5" />
+        <span>Ask AI to review my cart</span>
+      </button>
+
+      <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-400 text-center space-y-1">
+        <p>🔒 256-bit SSL encrypted checkout</p>
+        <p>Supports UPI, Cards, NetBanking &amp; Cash on Delivery</p>
+      </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Page
+// Main Cart Page
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Cart() {
   const navigate = useNavigate()
   const { refreshCart } = useCart()
+  const { askAI, setPageContext } = useAIChat()
 
-  const [items, setItems]     = useState([])
+  const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState('')
-  const [toast, setToast]     = useState('')
+  const [error, setError] = useState('')
+  const [toast, setToast] = useState('')
 
-  // ── Fetch ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    setPageContext({ page: 'cart' })
+  }, [setPageContext])
+
   const fetchCart = useCallback(async () => {
     setLoading(true)
     setError('')
@@ -412,31 +359,23 @@ export default function Cart() {
     }
   }, [navigate])
 
-  useEffect(() => { fetchCart() }, [fetchCart])
+  useEffect(() => {
+    fetchCart()
+  }, [fetchCart])
 
-  // ── Handlers ─────────────────────────────────────────────────────────
-
-  /**
-   * PATCH /user/cart/ — update quantity for a line-item.
-   * Optimistic update is handled inside CartItem; we just do the network call.
-   */
   async function handleQuantityChange(item, newQty) {
     await client.patch('/user/cart/', {
       product: item.product.id,
       quantity: newQty,
       ...(item.product_variant ? { product_variant: item.product_variant } : {}),
     })
-    // Update local state without a full re-fetch for snappiness.
-    // Also recalculate cartprice proportionally so subtotals stay accurate:
-    //   unitPrice = cartprice / oldQty  →  newCartprice = unitPrice × newQty
     setItems((prev) =>
       prev.map((i) => {
         if (
           i.product?.id === item.product?.id &&
           i.product_variant === item.product_variant
         ) {
-          const unitPrice =
-            i.cartprice != null ? parseFloat(i.cartprice) / i.quantity : null
+          const unitPrice = i.cartprice != null ? parseFloat(i.cartprice) / i.quantity : null
           return {
             ...i,
             quantity: newQty,
@@ -446,18 +385,12 @@ export default function Cart() {
         return i
       })
     )
-    // Sync the header badge
     refreshCart()
   }
 
-  /**
-   * DELETE /user/cart/?product=<id>&variant=<id>
-   */
   async function handleDelete(item) {
     const variantId = item.product_variant ?? 0
-    await client.delete(
-      `/user/cart/?product=${item.product.id}&variant=${variantId}`
-    )
+    await client.delete(`/user/cart/?product=${item.product.id}&variant=${variantId}`)
     setItems((prev) =>
       prev.filter(
         (i) =>
@@ -471,109 +404,104 @@ export default function Cart() {
     showToast('Item removed from cart.')
   }
 
-  function showToast(msg) {
-    setToast(msg)
-    setTimeout(() => setToast(''), 2500)
+  async function handleSaveForLater(item) {
+    const pid = item.product?.id
+    if (!pid) return
+    try {
+      await client.post(`/user/whishlist/?q=${pid}`)
+      await handleDelete(item)
+      showToast('Moved to your Wishlist!')
+    } catch {
+      showToast('Could not move to wishlist.')
+    }
   }
 
-  const totalItems = items.reduce((s, i) => s + i.quantity, 0)
-
-  // ── Render ────────────────────────────────────────────────────────────
+  function showToast(msg) {
+    setToast(msg)
+    setTimeout(() => setToast(''), 2600)
+  }
 
   return (
-    <div className="min-h-screen bg-[#eaeded] flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
       <Header />
 
-      <main className="flex-1 max-w-screen-xl mx-auto w-full px-3 sm:px-6 py-6">
-        {/* Page title */}
+      <main className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {!loading && (
-          <h1 className="text-2xl font-semibold text-gray-900 mb-4">
-            {items.length > 0
-              ? `Shopping Cart`
-              : 'Shopping Cart'}
-          </h1>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                Shopping Cart
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Review your items and proceed to secure checkout
+              </p>
+            </div>
+            <Link
+              to="/"
+              className="text-xs font-semibold text-indigo-600 hover:underline"
+            >
+              ← Continue shopping
+            </Link>
+          </div>
         )}
 
-        {/* Error */}
         {error && (
-          <div className="mb-4 px-4 py-3 bg-red-50 border border-red-300 rounded text-sm text-red-700">
-            {error}
-            <button onClick={fetchCart} className="ml-3 underline font-medium">
+          <div className="mb-6 px-4 py-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-sm text-rose-700 flex justify-between items-center">
+            <span>{error}</span>
+            <button onClick={fetchCart} className="underline font-bold ml-3 cursor-pointer">
               Retry
             </button>
           </div>
         )}
 
         {loading ? (
-          /* Loading skeleton */
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-8">
             <div className="flex-1">
               <CartSkeleton />
             </div>
-            <div className="lg:w-72 xl:w-80 flex-shrink-0">
-              <div className="h-56 bg-white rounded-lg border border-gray-200 animate-pulse" />
+            <div className="lg:w-80 xl:w-96 shrink-0">
+              <div className="h-64 bg-white rounded-3xl border border-slate-200/80 animate-pulse" />
             </div>
           </div>
         ) : items.length === 0 ? (
-          /* Empty state */
-          <div className="bg-white rounded-lg border border-gray-200 px-6">
-            <EmptyCart />
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs">
+            <EmptyCart onAskAI={() => askAI('Recommend the best products to add to my cart')} />
           </div>
         ) : (
-          /* Cart content */
-          <div className="flex flex-col lg:flex-row gap-6 items-start">
-
-            {/* ── Left: Item list ──────────────────────────────────── */}
-            <div className="flex-1 min-w-0">
-              {/* "Deselect all" header bar — Amazon pattern */}
-              <div className="flex items-center justify-between bg-white rounded-t-lg border border-b-0 border-gray-200 px-4 py-2">
-                <p className="text-xs text-gray-500">
-                  Price
-                </p>
-              </div>
-
-              {/* Item list */}
-              <div className="space-y-px">
-                {items.map((item, idx) => (
-                  <CartItem
-                    key={`${item.product?.id}-${item.product_variant ?? 'base'}-${idx}`}
-                    item={item}
-                    onQuantityChange={handleQuantityChange}
-                    onDelete={handleDelete}
-                  />
-                ))}
-              </div>
-
-              {/* Subtotal footer bar */}
-              <div className="bg-white rounded-b-lg border border-t-0 border-gray-200 px-4 py-3 text-right">
-                <p className="text-base text-gray-800">
-                  Subtotal ({totalItems} {totalItems === 1 ? 'item' : 'items'}):
-                  <span className="font-bold ml-2">
-                    {formatPrice(
-                      items.reduce((sum, item) => {
-                        const price = resolveCartPrice(item)
-                        return sum + (price != null ? price : 0)
-                      }, 0)
-                    )}
-                  </span>
-                </p>
-              </div>
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
+            {/* Left: Cart Items */}
+            <div className="flex-1 min-w-0 w-full space-y-3.5">
+              {items.map((item, idx) => (
+                <CartItem
+                  key={`${item.product?.id}-${item.product_variant ?? 'base'}-${idx}`}
+                  item={item}
+                  onQuantityChange={handleQuantityChange}
+                  onDelete={handleDelete}
+                  onSaveForLater={handleSaveForLater}
+                />
+              ))}
             </div>
 
-            {/* ── Right: Order summary ─────────────────────────────── */}
-            <div className="lg:w-72 xl:w-80 flex-shrink-0 w-full">
+            {/* Right: Sticky Summary */}
+            <div className="lg:w-80 xl:w-96 shrink-0 w-full">
               <OrderSummary
                 items={items}
                 onProceed={() => navigate('/checkout')}
+                onAskAIReview={() =>
+                  askAI("Review what's currently in my cart and tell me if I'm getting good value.")
+                }
               />
             </div>
           </div>
         )}
       </main>
 
-      {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-xl bg-gray-900 text-white text-sm font-medium">
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-xl bg-slate-900 text-white text-xs font-semibold"
+        >
           {toast}
         </div>
       )}
