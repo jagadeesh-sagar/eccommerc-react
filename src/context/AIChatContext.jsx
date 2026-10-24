@@ -88,6 +88,15 @@ export function AIChatProvider({ children }) {
   const [streaming, setStreaming] = useState(false)
   const [draftInput, setDraftInput] = useState('')
   const [pageContext, setPageContext] = useState(null)
+  const [sellerChatCount, setSellerChatCount] = useState(0)
+
+  const setSellerChatOpen = useCallback((open) => {
+    setSellerChatCount((c) => (open ? c + 1 : Math.max(0, c - 1)))
+    if (open) {
+      setIsOpen(false)
+    }
+  }, [])
+  const sellerChatOpen = sellerChatCount > 0
 
   const abortRef = useRef(null)
   const catalogCacheRef = useRef(null)
@@ -355,6 +364,8 @@ export function AIChatProvider({ children }) {
     setDraftInput,
     pageContext,
     setPageContext,
+    sellerChatOpen,
+    setSellerChatOpen,
     sendMessage,
     askAI,
     clearChat,

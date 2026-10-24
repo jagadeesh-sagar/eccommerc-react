@@ -1,5 +1,5 @@
 /**
- * Login Page — Modern Split-Screen / Card Layout for Chatram
+ * Login Page — Editorial Split-Screen / Card Layout for Chatram
  *
  * - POST /api/login/ → { username, password }
  * - Stores user in AuthContext on success and redirects to ?next= or /
@@ -14,7 +14,7 @@ import { SparkleIcon } from '../components/AIChatWidget'
 function FormField({ id, label, type = 'text', value, onChange, error, autoComplete, placeholder }) {
   return (
     <div className="mb-4">
-      <label htmlFor={id} className="block text-xs font-bold text-slate-700 mb-1.5">
+      <label htmlFor={id} className="block text-xs font-bold text-stone-700 mb-1.5">
         {label}
       </label>
       <input
@@ -26,10 +26,10 @@ function FormField({ id, label, type = 'text', value, onChange, error, autoCompl
         value={value}
         onChange={onChange}
         className={[
-          'w-full px-3.5 py-2.5 text-sm rounded-xl border bg-slate-50/50 focus:bg-white',
+          'w-full px-3.5 py-2.5 text-sm rounded-xl border bg-stone-50/70 focus:bg-white',
           'outline-none transition-all duration-150',
-          'focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15',
-          error ? 'border-rose-500 bg-rose-50/30' : 'border-slate-300',
+          'focus:border-stone-900 focus:ring-3 focus:ring-stone-900/10',
+          error ? 'border-rose-500 bg-rose-50/30' : 'border-stone-300',
         ].join(' ')}
       />
       {error && (
@@ -101,35 +101,33 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col lg:flex-row">
       {/* Left Brand Showcase Panel (Desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-12 flex-col justify-between relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-[#141413] text-white p-12 flex-col justify-between relative overflow-hidden">
         <div className="relative z-10">
           <Link to="/" className="inline-flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-amber-500 p-[1px]">
-              <div className="w-full h-full bg-slate-900 rounded-[11px] flex items-center justify-center">
-                <span className="text-xl font-extrabold text-white">C</span>
-              </div>
+            <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center">
+              <span className="text-xl font-extrabold text-white">C</span>
             </div>
             <span className="text-2xl font-extrabold tracking-tight text-white">Chatram</span>
           </Link>
         </div>
 
         <div className="relative z-10 max-w-md space-y-5">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
-            <SparkleIcon className="w-3.5 h-3.5 text-amber-300" />
-            <span>AI-MCP Powered Commerce</span>
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-stone-800 text-stone-200 border border-stone-700">
+            <SparkleIcon className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Curated Modern Marketplace</span>
           </span>
           <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
-            Shop smarter with conversational intelligence.
+            Thoughtfully curated products, effortless shopping.
           </h2>
-          <p className="text-sm text-indigo-200/80 leading-relaxed">
-            Sign in to unlock your personal AI Shopping Copilot, compare live inventory, track orders in real time, and chat directly with verified sellers.
+          <p className="text-sm text-stone-400 leading-relaxed">
+            Sign in to access your saved wishlist, compare live inventory with Chatram AI Copilot, track orders in real time, and message verified sellers directly.
           </p>
         </div>
 
-        <div className="relative z-10 text-xs text-slate-400">
-          © {new Date().getFullYear()} Chatram Commerce
+        <div className="relative z-10 text-xs text-stone-500">
+          © {new Date().getFullYear()} Chatram Marketplace
         </div>
       </div>
 
@@ -137,16 +135,16 @@ export default function Login() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 sm:px-8">
         {/* Mobile Brand Header */}
         <Link to="/" className="lg:hidden flex items-center gap-2.5 mb-8">
-          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-extrabold text-white">
+          <div className="w-9 h-9 rounded-xl bg-orange-600 flex items-center justify-center font-extrabold text-white">
             C
           </div>
-          <span className="text-2xl font-extrabold tracking-tight text-slate-900">Chatram</span>
+          <span className="text-2xl font-extrabold tracking-tight text-stone-900">Chatram</span>
         </Link>
 
-        <div className="bg-white border border-slate-200/90 rounded-3xl p-7 sm:p-9 w-full max-w-[420px] shadow-xl shadow-slate-900/5">
+        <div className="bg-white border border-stone-200/90 rounded-3xl p-7 sm:p-9 w-full max-w-[420px] shadow-xl shadow-stone-900/5">
           <div className="mb-6">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Welcome back</h1>
-            <p className="text-xs text-slate-500 mt-1">
+            <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight">Welcome back</h1>
+            <p className="text-xs text-stone-500 mt-1">
               Sign in to your Chatram account to continue
             </p>
           </div>
@@ -181,21 +179,21 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 px-4 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20 disabled:opacity-60 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="w-full mt-2 py-3 px-4 rounded-xl text-sm font-bold bg-stone-900 hover:bg-stone-800 text-white shadow-xs disabled:opacity-60 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
 
           <div className="flex items-center my-6">
-            <div className="flex-1 h-px bg-slate-200" />
-            <span className="px-3 text-xs text-slate-400 font-medium">New to Chatram?</span>
-            <div className="flex-1 h-px bg-slate-200" />
+            <div className="flex-1 h-px bg-stone-200" />
+            <span className="px-3 text-xs text-stone-400 font-medium">New to Chatram?</span>
+            <div className="flex-1 h-px bg-stone-200" />
           </div>
 
           <Link
             to="/register"
-            className="block w-full text-center py-2.5 px-4 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 transition-colors"
+            className="block w-full text-center py-2.5 px-4 rounded-xl text-xs font-bold border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-800 transition-colors"
           >
             Create a Chatram Account
           </Link>

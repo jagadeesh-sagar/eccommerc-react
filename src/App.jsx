@@ -26,13 +26,13 @@ const SellerDashboard   = lazy(() => import('./pages/SellerDashboard'))
 
 function AuthLoadingScreen() {
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
+    <div className="min-h-screen bg-[#f7f6f2] flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-12 h-12">
-          <div className="absolute inset-0 rounded-full border-4 border-indigo-100" />
-          <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin" />
+          <div className="absolute inset-0 rounded-full border-4 border-stone-200" />
+          <div className="absolute inset-0 rounded-full border-4 border-stone-900 border-t-transparent animate-spin" />
         </div>
-        <p className="text-sm font-medium text-slate-500">Loading Chatram…</p>
+        <p className="text-sm font-medium text-stone-500">Loading Chatram…</p>
       </div>
     </div>
   )
@@ -110,7 +110,7 @@ function Layout({ children }) {
   return (
     <div
       className={[
-        'flex flex-col min-h-screen bg-[#f8fafc] text-slate-900 transition-[padding] duration-300',
+        'flex flex-col min-h-screen bg-[#f7f6f2] text-stone-900 transition-[padding] duration-300',
         isOpen && isDocked ? 'lg:pr-[420px]' : '',
       ].join(' ')}
     >

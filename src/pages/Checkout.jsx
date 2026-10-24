@@ -73,8 +73,8 @@ function StepIndicator({ current }) {
                   done
                     ? 'bg-emerald-600 border-emerald-600 text-white'
                     : active
-                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-500/25'
-                    : 'bg-white border-slate-300 text-slate-400',
+                    ? 'bg-stone-900 border-stone-900 text-white shadow-xs'
+                    : 'bg-white border-stone-300 text-stone-400',
                 ].join(' ')}
               >
                 {done ? '✓' : step}
@@ -116,8 +116,8 @@ function AddressCard({ address, selected, onSelect, onEdit }) {
       className={[
         'border-2 rounded-2xl p-4 cursor-pointer transition-all',
         selected
-          ? 'border-indigo-600 bg-indigo-50/40 shadow-2xs'
-          : 'border-slate-200/90 hover:border-slate-300 bg-white',
+          ? 'border-stone-900 bg-stone-50 shadow-2xs'
+          : 'border-stone-200/90 hover:border-stone-300 bg-white',
       ].join(' ')}
     >
       <div className="flex items-start justify-between gap-3">
@@ -125,17 +125,17 @@ function AddressCard({ address, selected, onSelect, onEdit }) {
           <div
             className={[
               'mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0',
-              selected ? 'border-indigo-600' : 'border-slate-400',
+              selected ? 'border-stone-900' : 'border-stone-400',
             ].join(' ')}
           >
-            {selected && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
+            {selected && <div className="w-2 h-2 rounded-full bg-stone-900" />}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-bold text-slate-900 capitalize">
+              <p className="text-sm font-bold text-stone-900 capitalize">
                 {address.user ?? 'Saved Address'}
               </p>
-              <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/60 rounded-full px-2 py-0.5 uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-stone-700 bg-stone-200/70 border border-stone-300/70 rounded-full px-2 py-0.5 uppercase tracking-wider">
                 {address.address_type ?? 'both'}
               </span>
               {address.is_default && (
@@ -144,11 +144,11 @@ function AddressCard({ address, selected, onSelect, onEdit }) {
                 </span>
               )}
             </div>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-snug">
+            <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-snug">
               {formatAddressLine(address)}
             </p>
             {address.phone_number && (
-              <p className="text-xs text-slate-400 mt-1 font-mono">📞 {address.phone_number}</p>
+              <p className="text-xs text-stone-400 mt-1 font-mono">📞 {address.phone_number}</p>
             )}
           </div>
         </div>
@@ -160,7 +160,7 @@ function AddressCard({ address, selected, onSelect, onEdit }) {
               e.stopPropagation()
               onEdit(address)
             }}
-            className="text-xs font-semibold text-indigo-600 hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer"
+            className="text-xs font-semibold text-stone-700 hover:bg-stone-100 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer"
           >
             Edit
           </button>
@@ -221,8 +221,8 @@ function AddressForm({ initialAddress = null, onSaved, onCancel }) {
           }}
           className={[
             'w-full px-3.5 py-2 text-sm bg-white border rounded-xl outline-none transition-all',
-            'focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15',
-            errors[name] ? 'border-rose-500' : 'border-slate-300',
+            'focus:border-stone-900 focus:ring-3 focus:ring-stone-900/10',
+            errors[name] ? 'border-rose-500' : 'border-stone-300',
           ].join(' ')}
         />
         {errors[name] && <p className="mt-1 text-xs text-rose-600">⚠ {errors[name]}</p>}
@@ -272,9 +272,9 @@ function AddressForm({ initialAddress = null, onSaved, onCancel }) {
   return (
     <form
       onSubmit={handleSave}
-      className="border-2 border-indigo-200 rounded-2xl p-5 bg-indigo-50/30 space-y-4"
+      className="border-2 border-stone-200 rounded-2xl p-5 bg-stone-50/70 space-y-4"
     >
-      <p className="text-sm font-bold text-slate-900">
+      <p className="text-sm font-bold text-stone-900">
         {isEditing ? 'Edit Delivery Address' : 'Add New Delivery Address'}
       </p>
 
@@ -293,11 +293,11 @@ function AddressForm({ initialAddress = null, onSaved, onCancel }) {
         {field('postal_code', 'PIN / Postal Code', 'number')}
         {field('phone_number', 'Phone Number', 'tel', true)}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Address Type</label>
+          <label className="block text-xs font-semibold text-stone-700 mb-1">Address Type</label>
           <select
             value={form.address_type}
             onChange={(e) => setForm((f) => ({ ...f, address_type: e.target.value }))}
-            className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-xl outline-none focus:border-indigo-500"
+            className="w-full px-3.5 py-2 text-sm bg-white border border-stone-300 rounded-xl outline-none focus:border-stone-900"
           >
             {ADDRESS_TYPE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -312,14 +312,14 @@ function AddressForm({ initialAddress = null, onSaved, onCancel }) {
         <button
           type="submit"
           disabled={saving}
-          className="px-5 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60 transition-colors cursor-pointer"
+          className="px-5 py-2.5 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white disabled:opacity-60 transition-colors cursor-pointer"
         >
           {saving ? 'Saving…' : isEditing ? 'Update Address' : 'Save & Use Address'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-5 py-2.5 rounded-xl text-xs font-semibold border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+          className="px-5 py-2.5 rounded-xl text-xs font-semibold border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 transition-colors cursor-pointer"
         >
           Cancel
         </button>
@@ -375,11 +375,11 @@ function StepAddress({
     <div className="space-y-6">
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-extrabold text-slate-900">Select Delivery Address</h2>
+          <h2 className="text-lg font-extrabold text-stone-900">Select Delivery Address</h2>
           {!showForm && !editingAddr && (
             <button
               onClick={() => setShowForm(true)}
-              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+              className="text-xs font-bold text-stone-800 hover:text-stone-950 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
             >
               + Add New Address
             </button>
@@ -437,14 +437,14 @@ function StepAddress({
             if (e.target.checked) setSelectedBilling(selectedShipping)
             else setSelectedBilling(null)
           }}
-          className="accent-indigo-600 w-4 h-4 rounded"
+          className="accent-stone-900 w-4 h-4 rounded"
         />
         <span>Use the same address for billing</span>
       </label>
 
       {!sameBilling && (
         <div>
-          <h2 className="text-lg font-extrabold text-slate-900 mb-3">Select Billing Address</h2>
+          <h2 className="text-lg font-extrabold text-stone-900 mb-3">Select Billing Address</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {billingAddrs.map((addr) => {
               const addrId = addr.id ?? addr._localId
@@ -471,7 +471,7 @@ function StepAddress({
         <button
           onClick={onNext}
           disabled={!canProceed || nextLoading}
-          className="w-full sm:w-auto px-8 py-3.5 rounded-2xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+          className="w-full sm:w-auto px-8 py-3.5 rounded-2xl text-sm font-bold bg-stone-900 hover:bg-stone-800 text-white shadow-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
           {nextLoading ? 'Preparing Order…' : 'Continue to Payment →'}
         </button>
@@ -549,9 +549,9 @@ function OrderSummaryPanel({ currentOrder }) {
             <span className="font-mono">− {formatPrice(currentOrder.discount_amount)}</span>
           </div>
         )}
-        <div className="flex justify-between text-base font-extrabold text-slate-900 border-t border-slate-200 pt-2.5 mt-1">
+        <div className="flex justify-between text-base font-extrabold text-stone-900 border-t border-stone-200 pt-2.5 mt-1">
           <span>Order Total</span>
-          <span className="font-mono text-indigo-600">{formatPrice(currentOrder.total_amount)}</span>
+          <span className="font-mono text-stone-950">{formatPrice(currentOrder.total_amount)}</span>
         </div>
       </div>
     </div>
@@ -598,7 +598,7 @@ function StepPlaceOrder({
             </p>
             <button
               onClick={onBack}
-              className="text-xs font-bold text-indigo-600 hover:underline cursor-pointer"
+              className="text-xs font-bold text-stone-800 hover:underline cursor-pointer"
             >
               Change
             </button>
@@ -642,24 +642,24 @@ function StepPlaceOrder({
               className={[
                 'flex items-start gap-3.5 p-4 rounded-2xl border-2 cursor-pointer transition-all',
                 isCOD
-                  ? 'border-indigo-600 bg-indigo-50/40 shadow-2xs'
-                  : 'border-slate-200/90 bg-white hover:border-slate-300',
+                  ? 'border-stone-900 bg-stone-50 shadow-2xs'
+                  : 'border-stone-200/90 bg-white hover:border-stone-300',
               ].join(' ')}
             >
               <div
                 className={[
                   'mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0',
-                  isCOD ? 'border-indigo-600' : 'border-slate-400',
+                  isCOD ? 'border-stone-900' : 'border-stone-400',
                 ].join(' ')}
               >
-                {isCOD && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
+                {isCOD && <div className="w-2 h-2 rounded-full bg-stone-900" />}
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-lg">💵</span>
-                  <p className="text-sm font-bold text-slate-900">Cash on Delivery (COD)</p>
+                  <p className="text-sm font-bold text-stone-900">Cash on Delivery (COD)</p>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-stone-500 mt-0.5">
                   Pay in cash or UPI at the doorstep when your order arrives
                 </p>
               </div>
@@ -671,27 +671,27 @@ function StepPlaceOrder({
               className={[
                 'flex items-start gap-3.5 p-4 rounded-2xl border-2 cursor-pointer transition-all',
                 isOnline
-                  ? 'border-indigo-600 bg-indigo-50/40 shadow-2xs'
-                  : 'border-slate-200/90 bg-white hover:border-slate-300',
+                  ? 'border-stone-900 bg-stone-50 shadow-2xs'
+                  : 'border-stone-200/90 bg-white hover:border-stone-300',
               ].join(' ')}
             >
               <div
                 className={[
                   'mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0',
-                  isOnline ? 'border-indigo-600' : 'border-slate-400',
+                  isOnline ? 'border-stone-900' : 'border-stone-400',
                 ].join(' ')}
               >
-                {isOnline && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
+                {isOnline && <div className="w-2 h-2 rounded-full bg-stone-900" />}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-lg">💳</span>
-                  <p className="text-sm font-bold text-slate-900">Online Payment</p>
-                  <span className="text-[10px] font-bold text-white bg-indigo-600 rounded-md px-2 py-0.5">
+                  <p className="text-sm font-bold text-stone-900">Online Payment</p>
+                  <span className="text-[10px] font-bold text-white bg-stone-900 rounded-md px-2 py-0.5">
                     Razorpay Secure
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-stone-500 mt-0.5">
                   Instant payment via UPI, Credit/Debit Cards, NetBanking &amp; Wallets
                 </p>
               </div>
@@ -709,7 +709,7 @@ function StepPlaceOrder({
           <button
             onClick={onPlaceOrder}
             disabled={placing || !paymentMethod}
-            className="flex-1 sm:flex-none px-10 py-3.5 rounded-2xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+            className="flex-1 sm:flex-none px-10 py-3.5 rounded-2xl text-sm font-bold bg-stone-900 hover:bg-stone-800 text-white shadow-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             {placing
               ? isOnline
@@ -867,7 +867,7 @@ export default function Checkout() {
             name: 'Chatram',
             description: `Order #${rpData.order_number || currentOrder.order_number}`,
             order_id: rpData.razorpay_order_id,
-            theme: { color: '#4f46e5' },
+            theme: { color: '#141413' },
 
             handler: async (response) => {
               try {
@@ -927,32 +927,32 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col">
       <Header />
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight">
               Secure Checkout
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-stone-500 mt-0.5">
               Complete your Chatram order in two simple steps
             </p>
           </div>
-          <Link to="/cart" className="text-xs font-semibold text-indigo-600 hover:underline">
+          <Link to="/cart" className="text-xs font-semibold text-stone-700 hover:text-stone-950 hover:underline">
             ← Back to Cart
           </Link>
         </div>
 
         <StepIndicator current={step} />
 
-        <div className="bg-white border border-slate-200/80 rounded-3xl p-5 sm:p-8 shadow-2xs min-h-[320px]">
+        <div className="bg-white border border-stone-200/90 rounded-3xl p-5 sm:p-8 shadow-2xs min-h-[320px]">
           {addrLoading ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center space-y-3">
-                <div className="inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                <p className="text-xs font-semibold text-slate-500">Loading your addresses…</p>
+                <div className="inline-block w-8 h-8 border-4 border-stone-900 border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs font-semibold text-stone-500">Loading your addresses…</p>
               </div>
             </div>
           ) : step === 1 ? (

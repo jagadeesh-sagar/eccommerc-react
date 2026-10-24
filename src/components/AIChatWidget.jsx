@@ -1,12 +1,14 @@
 /**
- * AIChatWidget — Chatram AI-MCP Shopping Copilot
+ * AIChatWidget — Chatram MCP Shopping Assistant
  *
  * Available on every page in two modes:
- *   1. Floating Popover Mode (bottom-right, resizable)
+ *   1. Floating Popover Mode (bottom-left, resizable, auto-hides when Seller Chat is active)
  *   2. Docked Side-Panel Mode (full-height right sidebar on desktop)
  *
  * Features:
  *   - Context-aware prompts (knows active product/category via AIChatContext)
+ *   - Automatically yields screen space when Seller Chat (OrderChatPanel) is open
+ *   - Editorial Warm Obsidian, Terracotta & Forest Emerald design (no purple/indigo AI slop)
  *   - Rich Markdown rendering + interactive ProductsRow & OrderConfirmedCard
  *   - Automatic CartContext synchronization when MCP tools mutate cart/orders
  *   - IME-safe Enter key submission & CSS `field-sizing: content` auto-growing input
@@ -21,10 +23,10 @@ import { useAIChat } from '../context/AIChatContext'
 // ─── Suggestions ─────────────────────────────────────────────────────────────
 
 const DEFAULT_SUGGESTIONS = [
-  { label: '✨ Show latest arrivals', prompt: 'Show me the latest products in the store' },
-  { label: '💰 Best under ₹2,000', prompt: 'Find the best products under ₹2000' },
-  { label: '🛒 Check my cart', prompt: "What's currently in my shopping cart?" },
-  { label: '📦 Track my orders', prompt: 'Show my recent orders and their status' },
+  { label: 'New arrivals in store', prompt: 'Show me the latest products in the store' },
+  { label: 'Best picks under ₹2,000', prompt: 'Find the best products under ₹2000' },
+  { label: 'Review my shopping cart', prompt: "What's currently in my shopping cart?" },
+  { label: 'Track my recent orders', prompt: 'Show my recent orders and their status' },
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -78,13 +80,13 @@ function renderInline(text, navigate, key = 0) {
           <img
             src={src}
             alt={alt}
-            className="max-w-full rounded-xl border border-slate-200/80 bg-white p-1 shadow-xs"
+            className="max-w-full rounded-xl border border-stone-200/90 bg-white p-1 shadow-xs"
             style={{ maxHeight: 190, objectFit: 'contain' }}
             onError={(e) => {
               e.currentTarget.style.display = 'none'
             }}
           />
-          {alt && <span className="block text-[11px] text-slate-400 mt-1">{alt}</span>}
+          {alt && <span className="block text-[11px] text-stone-400 mt-1">{alt}</span>}
         </span>
       )
     } else if (full.startsWith('[')) {
@@ -104,7 +106,7 @@ function renderInline(text, navigate, key = 0) {
               navigate(`/product/${internalProductMatch[1]}`)
             }
           }}
-          className="inline-flex items-center gap-0.5 font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100/80 px-1.5 py-0.5 rounded-md underline decoration-indigo-300 underline-offset-2 transition-colors break-all"
+          className="inline-flex items-center gap-0.5 font-semibold text-teal-800 hover:text-teal-950 bg-teal-50 hover:bg-teal-100/80 px-1.5 py-0.5 rounded-md underline decoration-teal-300 underline-offset-2 transition-colors break-all"
         >
           {label}
           <ExternalLinkIcon />
@@ -112,13 +114,13 @@ function renderInline(text, navigate, key = 0) {
       )
     } else if (full.startsWith('**')) {
       parts.push(
-        <strong key={idx++} className="font-semibold text-slate-900">
+        <strong key={idx++} className="font-semibold text-stone-900">
           {match[6]}
         </strong>
       )
     } else if (full.startsWith('*')) {
       parts.push(
-        <em key={idx++} className="italic text-slate-700">
+        <em key={idx++} className="italic text-stone-700">
           {match[7]}
         </em>
       )
@@ -147,7 +149,7 @@ function renderInline(text, navigate, key = 0) {
             }
           }}
           title={url}
-          className="inline-flex items-center gap-0.5 font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100/80 px-1.5 py-0.5 rounded-md underline decoration-indigo-300 underline-offset-2 transition-colors break-all"
+          className="inline-flex items-center gap-0.5 font-semibold text-teal-800 hover:text-teal-950 bg-teal-50 hover:bg-teal-100/80 px-1.5 py-0.5 rounded-md underline decoration-teal-300 underline-offset-2 transition-colors break-all"
         >
           {displayUrl}
           <ExternalLinkIcon />
@@ -195,7 +197,7 @@ function renderMarkdown(text, navigate) {
     const line = raw
     if (/^[-*_]{3,}$/.test(line.trim())) {
       flushList()
-      elements.push(<hr key={elemIdx++} className="my-2.5 border-slate-200" />)
+      elements.push(<hr key={elemIdx++} className="my-2.5 border-stone-200" />)
       return
     }
     const standaloneImg = line.trim().match(/^!\[([^\]]*?)\]\(([^)]+?)\)$/)
@@ -208,13 +210,13 @@ function renderMarkdown(text, navigate) {
           <img
             src={src}
             alt={alt}
-            className="max-w-full rounded-xl border border-slate-200/80 bg-white p-1.5 shadow-xs"
+            className="max-w-full rounded-xl border border-stone-200/90 bg-white p-1.5 shadow-xs"
             style={{ maxHeight: 210, objectFit: 'contain' }}
             onError={(e) => {
               e.currentTarget.style.display = 'none'
             }}
           />
-          {alt && <p className="text-[11px] text-slate-400 mt-1 text-center">{alt}</p>}
+          {alt && <p className="text-[11px] text-stone-400 mt-1 text-center">{alt}</p>}
         </div>
       )
       return
@@ -222,7 +224,7 @@ function renderMarkdown(text, navigate) {
     if (line.startsWith('### ')) {
       flushList()
       elements.push(
-        <h3 key={elemIdx++} className="text-sm font-bold text-slate-900 mt-2.5 mb-1">
+        <h3 key={elemIdx++} className="text-sm font-bold text-stone-900 mt-2.5 mb-1">
           {renderInline(line.slice(4), navigate)}
         </h3>
       )
@@ -231,7 +233,7 @@ function renderMarkdown(text, navigate) {
     if (line.startsWith('## ')) {
       flushList()
       elements.push(
-        <h2 key={elemIdx++} className="text-sm font-bold text-slate-900 mt-2.5 mb-1">
+        <h2 key={elemIdx++} className="text-sm font-bold text-stone-900 mt-2.5 mb-1">
           {renderInline(line.slice(3), navigate)}
         </h2>
       )
@@ -240,7 +242,7 @@ function renderMarkdown(text, navigate) {
     if (line.startsWith('# ')) {
       flushList()
       elements.push(
-        <h1 key={elemIdx++} className="text-base font-bold text-slate-900 mt-2.5 mb-1">
+        <h1 key={elemIdx++} className="text-base font-bold text-stone-900 mt-2.5 mb-1">
           {renderInline(line.slice(2), navigate)}
         </h1>
       )
@@ -253,7 +255,7 @@ function renderMarkdown(text, navigate) {
         listType = 'ol'
       }
       listItems.push(
-        <li key={listItems.length} className="text-[13.5px] text-slate-700 leading-relaxed">
+        <li key={listItems.length} className="text-[13.5px] text-stone-700 leading-relaxed">
           {renderInline(olMatch[2], navigate)}
         </li>
       )
@@ -266,7 +268,7 @@ function renderMarkdown(text, navigate) {
         listType = 'ul'
       }
       listItems.push(
-        <li key={listItems.length} className="text-[13.5px] text-slate-700 leading-relaxed">
+        <li key={listItems.length} className="text-[13.5px] text-stone-700 leading-relaxed">
           {renderInline(ulMatch[1], navigate)}
         </li>
       )
@@ -279,7 +281,7 @@ function renderMarkdown(text, navigate) {
     }
     flushList()
     elements.push(
-      <p key={elemIdx++} className="text-[13.5px] text-slate-700 leading-relaxed">
+      <p key={elemIdx++} className="text-[13.5px] text-stone-700 leading-relaxed">
         {renderInline(line, navigate)}
       </p>
     )
@@ -288,14 +290,19 @@ function renderMarkdown(text, navigate) {
   return <>{elements}</>
 }
 
-// ─── Icons ───────────────────────────────────────────────────────────────────
+// ─── Icons (AI Sparkle Icon) ─────────────────────────────────────────────────
 
 export function SparkleIcon({ className = 'w-5 h-5' }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+    >
       <path
         fillRule="evenodd"
-        d="M9 4.5a.75.75 0 0 1 .721.544l.813 2.846a3.75 3.75 0 0 0 2.576 2.576l2.846.813a.75.75 0 0 1 0 1.442l-2.846.813a3.75 3.75 0 0 0-2.576 2.576l-.813 2.846a.75.75 0 0 1-1.442 0l-.813-2.846a3.75 3.75 0 0 0-2.576-2.576l-2.846-.813a.75.75 0 0 1 0-1.442l2.846-.813A3.75 3.75 0 0 0 7.466 7.89l.813-2.846A.75.75 0 0 1 9 4.5ZM18 1.5a.75.75 0 0 1 .728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a2.625 2.625 0 0 0-1.91-1.91l-1.036-.258a.75.75 0 0 1 0-1.456l1.036-.258a2.625 2.625 0 0 0 1.91-1.91l.258-1.036A.75.75 0 0 1 18 1.5Z"
+        d="M9 4.5a.75.75 0 0 1 .721.544l.813 2.846a3.75 3.75 0 0 0 2.576 2.576l2.846.813a.75.75 0 0 1 0 1.442l-2.846.813a3.75 3.75 0 0 0-2.576 2.576l-.813 2.846a.75.75 0 0 1-1.442 0l-.813-2.846a3.75 3.75 0 0 0-2.576-2.576l-2.846-.813a.75.75 0 0 1 0-1.442l2.846-.813A3.75 3.75 0 0 0 7.466 7.89l.813-2.846A.75.75 0 0 1 9 4.5ZM18 1.5a.75.75 0 0 1 .728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a2.625 2.625 0 0 0-1.91-1.91l-1.036-.258a.75.75 0 0 1 0-1.456l1.036-.258a2.625 2.625 0 0 0 1.91-1.91l.258-1.036A.75.75 0 0 1 18 1.5ZM16.5 15a.75.75 0 0 1 .712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 0 1 0 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 0 1-1.422 0l-.395-1.183a1.5 1.5 0 0 0-.948-.948l-1.183-.395a.75.75 0 0 1 0-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0 1 16.5 15Z"
         clipRule="evenodd"
       />
     </svg>
@@ -304,8 +311,8 @@ export function SparkleIcon({ className = 'w-5 h-5' }) {
 
 function BotAvatarIcon() {
   return (
-    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shrink-0 shadow-xs">
-      <SparkleIcon className="w-3.5 h-3.5 text-white" />
+    <div className="w-7 h-7 rounded-lg bg-[#141413] border border-stone-700 flex items-center justify-center shrink-0 shadow-2xs">
+      <SparkleIcon className="w-4 h-4 text-amber-400" />
     </div>
   )
 }
@@ -324,13 +331,13 @@ function ThinkingDots() {
   return (
     <div className="flex items-start gap-2.5 px-1 py-1">
       <BotAvatarIcon />
-      <div className="flex items-center gap-2 bg-white border border-slate-200/90 rounded-2xl rounded-tl-xs px-4 py-2.5 shadow-xs">
-        <span className="text-xs font-medium text-slate-500">Running MCP tools</span>
+      <div className="flex items-center gap-2 bg-white border border-stone-200/90 rounded-2xl rounded-tl-xs px-4 py-2.5 shadow-2xs">
+        <span className="text-xs font-medium text-stone-600">Checking live catalog</span>
         <div className="flex items-center gap-1">
           {[0, 1, 2].map((i) => (
             <span
               key={i}
-              className="w-1.5 h-1.5 rounded-full bg-indigo-600 inline-block"
+              className="w-1.5 h-1.5 rounded-full bg-teal-700 inline-block"
               style={{
                 animation: 'ai-bounce 1.2s infinite',
                 animationDelay: `${i * 0.2}s`,
@@ -348,37 +355,38 @@ function SuggestionChips({ onSelect, pageContext }) {
   const dynamicSuggestions = product
     ? [
         {
-          label: `✨ Should I buy ${product.name.slice(0, 18)}…?`,
+          label: `Key pros & review summary for ${product.name.slice(0, 18)}…`,
           prompt: `Tell me the key pros, specs, and customer review summary for ${product.name}.`,
         },
         {
-          label: '⚖️ Compare with alternatives',
+          label: 'Compare with similar items',
           prompt: `Compare ${product.name} with other similar products in the store.`,
         },
         {
-          label: '🛒 Add this to my cart',
+          label: 'Add 1 unit to my cart',
           prompt: `Add 1 unit of ${product.name} (ID ${product.id}) to my cart.`,
         },
         {
-          label: '📦 Check my recent orders',
+          label: 'Check my recent orders',
           prompt: 'Show my recent orders',
         },
       ]
     : DEFAULT_SUGGESTIONS
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[340px] gap-6 px-4 py-6">
+    <div className="flex flex-col items-center justify-center min-h-[320px] gap-6 px-4 py-6">
       <div className="flex flex-col items-center gap-3 text-center max-w-[290px]">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-500/25 ring-4 ring-indigo-50">
-          <SparkleIcon className="w-7 h-7 text-white" />
+        <div className="w-12 h-12 rounded-2xl bg-[#141413] text-stone-100 flex items-center justify-center shadow-md border border-stone-800">
+          <SparkleIcon className="w-6 h-6 text-amber-400" />
         </div>
         <div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/60 mb-1.5">
-            MCP Agent Connected
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-stone-200/80 text-stone-700 mb-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+            MCP-Powered Assistant
           </span>
-          <h3 className="font-bold text-slate-900 text-base">Chatram AI Shopping Copilot</h3>
-          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-            I can search live inventory, compare specs, manage your cart, or place and track orders in real time.
+          <h3 className="font-bold text-stone-900 text-base">Chatram AI Copilot</h3>
+          <p className="text-xs text-stone-500 mt-1 leading-relaxed">
+            Search live inventory, compare product specs, manage your cart, or check order status directly.
           </p>
         </div>
       </div>
@@ -388,7 +396,7 @@ function SuggestionChips({ onSelect, pageContext }) {
           <button
             key={s.label}
             onClick={() => onSelect(s.prompt)}
-            className="text-left text-xs font-medium text-slate-700 bg-white border border-slate-200/90 hover:border-indigo-400 hover:text-indigo-700 hover:bg-indigo-50/50 rounded-xl px-3.5 py-2.5 transition-all leading-snug shadow-2xs active:scale-[0.98] cursor-pointer"
+            className="text-left text-xs font-medium text-stone-700 bg-white border border-stone-200/90 hover:border-stone-900 hover:text-stone-950 hover:bg-stone-50 rounded-xl px-3.5 py-2.5 transition-all leading-snug shadow-2xs active:scale-[0.98] cursor-pointer"
           >
             {s.label}
           </button>
@@ -419,7 +427,7 @@ function ProductsRow({ products }) {
 
   return (
     <div className="mt-2">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5 px-0.5">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5 px-0.5">
         Matched Storefront Items
       </p>
       <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin">
@@ -432,10 +440,10 @@ function ProductsRow({ products }) {
           return (
             <div
               key={pid || i}
-              className="shrink-0 w-40 bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-xs hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col"
+              className="shrink-0 w-40 bg-white border border-stone-200/90 rounded-xl overflow-hidden shadow-xs hover:shadow-md hover:border-stone-400 transition-all cursor-pointer flex flex-col"
               onClick={() => pid && navigate(`/product/${pid}`)}
             >
-              <div className="h-24 bg-slate-50 p-2 flex items-center justify-center overflow-hidden relative">
+              <div className="h-24 bg-stone-50 p-2 flex items-center justify-center overflow-hidden relative">
                 {primaryImg?.image_url ? (
                   <img
                     src={primaryImg.image_url}
@@ -444,12 +452,12 @@ function ProductsRow({ products }) {
                     loading="lazy"
                   />
                 ) : (
-                  <span className="text-2xl font-bold text-slate-300 select-none">
+                  <span className="text-2xl font-bold text-stone-300 select-none">
                     {(product.product_name ?? '?')[0].toUpperCase()}
                   </span>
                 )}
                 {Number(product.avg_rating) > 0 && (
-                  <span className="absolute top-1.5 right-1.5 bg-white/90 backdrop-blur-xs border border-slate-200/80 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-slate-700 flex items-center gap-0.5">
+                  <span className="absolute top-1.5 right-1.5 bg-white/90 backdrop-blur-xs border border-stone-200/80 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-stone-700 flex items-center gap-0.5">
                     <span className="text-amber-500">★</span> {Number(product.avg_rating).toFixed(1)}
                   </span>
                 )}
@@ -457,10 +465,10 @@ function ProductsRow({ products }) {
 
               <div className="p-2.5 flex-1 flex flex-col justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-slate-800 line-clamp-2 leading-snug mb-1">
+                  <p className="text-xs font-semibold text-stone-800 line-clamp-2 leading-snug mb-1">
                     {product.product_name}
                   </p>
-                  <p className="text-xs font-bold font-mono text-slate-900 mb-2">
+                  <p className="text-xs font-bold font-mono text-stone-900 mb-2">
                     {formatPrice(product.base_price)}
                   </p>
                 </div>
@@ -473,8 +481,8 @@ function ProductsRow({ products }) {
                   className={[
                     'w-full text-[11px] font-semibold py-1.5 rounded-lg transition-all cursor-pointer',
                     isAdding
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white border border-indigo-200/80',
+                      ? 'bg-emerald-700 text-white'
+                      : 'bg-stone-900 text-white hover:bg-stone-800',
                     !pid ? 'opacity-40 cursor-not-allowed' : '',
                   ].join(' ')}
                 >
@@ -492,24 +500,24 @@ function ProductsRow({ products }) {
 function OrderConfirmedCard({ data }) {
   const navigate = useNavigate()
   return (
-    <div className="mt-2 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-3.5 shadow-xs">
+    <div className="mt-2 bg-emerald-50/90 border border-emerald-200 rounded-xl p-3.5 shadow-xs">
       <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-lg">🎉</span>
-        <p className="font-bold text-emerald-900 text-sm">Order Confirmed!</p>
+        <span className="text-lg">✓</span>
+        <p className="font-bold text-emerald-950 text-sm">Order Confirmed</p>
       </div>
       {data?.id && (
-        <p className="text-xs text-emerald-800 mb-0.5">
+        <p className="text-xs text-emerald-900 mb-0.5">
           Order ID: <span className="font-mono font-bold">#{data.id}</span>
         </p>
       )}
       {data?.total_amount && (
-        <p className="text-xs text-emerald-800 mb-2">
+        <p className="text-xs text-emerald-900 mb-2">
           Total: <span className="font-mono font-bold">{formatPrice(data.total_amount)}</span>
         </p>
       )}
       <button
         onClick={() => navigate('/orders')}
-        className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline underline-offset-2 cursor-pointer"
+        className="text-xs font-semibold text-emerald-800 hover:text-emerald-950 underline underline-offset-2 cursor-pointer"
       >
         Track your order →
       </button>
@@ -529,11 +537,11 @@ function AssistantBubble({ message, isCurrentlyStreaming, navigate }) {
             return (
               <div
                 key={i}
-                className="bg-white border border-slate-200/90 rounded-2xl rounded-tl-xs px-4 py-3 shadow-2xs"
+                className="bg-white border border-stone-200/90 rounded-2xl rounded-tl-xs px-4 py-3 shadow-2xs"
               >
                 {renderMarkdown(part.content, navigate)}
                 {isCurrentlyStreaming && i === message.parts.length - 1 && (
-                  <span className="inline-block w-1.5 h-3.5 bg-indigo-500 ml-1 align-middle animate-pulse rounded-full" />
+                  <span className="inline-block w-1.5 h-3.5 bg-teal-700 ml-1 align-middle animate-pulse rounded-full" />
                 )}
               </div>
             )
@@ -558,13 +566,13 @@ function AssistantBubble({ message, isCurrentlyStreaming, navigate }) {
         })}
 
         {isCurrentlyStreaming && !hasContent && (
-          <div className="bg-white border border-slate-200/90 rounded-2xl rounded-tl-xs px-4 py-3 shadow-2xs inline-flex items-center gap-2">
-            <span className="text-xs font-medium text-slate-500">Thinking</span>
+          <div className="bg-white border border-stone-200/90 rounded-2xl rounded-tl-xs px-4 py-3 shadow-2xs inline-flex items-center gap-2">
+            <span className="text-xs font-medium text-stone-500">Thinking</span>
             <div className="flex items-center gap-1">
               {[0, 1, 2].map((i) => (
                 <span
                   key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-indigo-600 inline-block"
+                  className="w-1.5 h-1.5 rounded-full bg-teal-700 inline-block"
                   style={{ animation: 'ai-bounce 1.2s infinite', animationDelay: `${i * 0.2}s` }}
                 />
               ))}
@@ -580,11 +588,11 @@ function UserBubble({ message }) {
   return (
     <div className="flex flex-col items-end gap-1">
       {message.contextBadge && (
-        <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full max-w-[75%] truncate">
-          Context: {message.contextBadge}
+        <span className="text-[10px] font-medium text-stone-600 bg-stone-200/70 border border-stone-300/80 px-2 py-0.5 rounded-full max-w-[75%] truncate">
+          Viewing: {message.contextBadge}
         </span>
       )}
-      <div className="max-w-[80%] bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-2xl rounded-br-xs px-4 py-2.5 text-[13.5px] leading-relaxed shadow-xs whitespace-pre-wrap">
+      <div className="max-w-[80%] bg-[#141413] text-stone-50 rounded-2xl rounded-br-xs px-4 py-2.5 text-[13.5px] leading-relaxed shadow-xs whitespace-pre-wrap">
         {message.content}
       </div>
     </div>
@@ -607,16 +615,17 @@ export default function AIChatWidget() {
     draftInput,
     setDraftInput,
     pageContext,
+    sellerChatOpen,
     sendMessage,
     clearChat,
   } = useAIChat()
 
   // Resizable floating panel dimensions
   const [panelW, setPanelW] = useState(() =>
-    typeof window !== 'undefined' ? Math.min(440, Math.floor(window.innerWidth * 0.92)) : 420
+    typeof window !== 'undefined' ? Math.min(430, Math.floor(window.innerWidth * 0.92)) : 410
   )
   const [panelH, setPanelH] = useState(() =>
-    typeof window !== 'undefined' ? Math.min(640, Math.floor(window.innerHeight * 0.78)) : 600
+    typeof window !== 'undefined' ? Math.min(620, Math.floor(window.innerHeight * 0.76)) : 580
   )
   const resizingRef = useRef(null)
   const bottomRef = useRef(null)
@@ -632,7 +641,7 @@ export default function AIChatWidget() {
     }
   }, [isOpen])
 
-  // Top-left corner resize grip (for bottom-right floating panel)
+  // Top-right corner resize grip (since floating panel is anchored at bottom-left)
   function startResize(e) {
     if (isDocked) return
     e.preventDefault()
@@ -644,7 +653,7 @@ export default function AIChatWidget() {
     }
     const onMove = (ev) => {
       if (!resizingRef.current) return
-      const dx = resizingRef.current.startX - ev.clientX // drag left = wider
+      const dx = ev.clientX - resizingRef.current.startX // drag right = wider
       const dy = resizingRef.current.startY - ev.clientY // drag up = taller
       const newW = Math.max(340, Math.min(window.innerWidth * 0.75, resizingRef.current.startW + dx))
       const newH = Math.max(380, Math.min(window.innerHeight * 0.88, resizingRef.current.startH + dy))
@@ -669,6 +678,11 @@ export default function AIChatWidget() {
     }
   }
 
+  // Never render floating widget when Seller Chat is active so it never obstructs Seller Chat typing space
+  if (sellerChatOpen && !isOpen) {
+    return null
+  }
+
   const canSend = !streaming && draftInput.trim().length > 0
   const activeProduct = pageContext?.product
 
@@ -677,11 +691,11 @@ export default function AIChatWidget() {
       <style>{`
         @keyframes ai-bounce {
           0%, 60%, 100% { transform: translateY(0); opacity: 1; }
-          30%            { transform: translateY(-5px); opacity: .7; }
+          30%            { transform: translateY(-4px); opacity: .65; }
         }
       `}</style>
 
-      {/* ─────────────────── Chat Panel (Floating or Docked) ─────────────────── */}
+      {/* ─────────────────── Chat Panel (Floating Bottom-Left or Docked Right) ─────────────────── */}
       {isOpen && (
         <aside
           style={
@@ -694,46 +708,46 @@ export default function AIChatWidget() {
           }
           className={
             isDocked
-              ? 'fixed top-0 right-0 bottom-0 z-[9998] w-full sm:w-[420px] bg-white border-l border-slate-200/90 shadow-2xl flex flex-col overflow-hidden'
+              ? 'fixed top-0 right-0 bottom-0 z-[60] w-full sm:w-[420px] bg-white border-l border-stone-200/90 shadow-2xl flex flex-col overflow-hidden'
               : [
-                  'fixed z-[9998]',
+                  'fixed z-[60]',
                   'bottom-0 sm:bottom-20',
-                  'right-0 sm:right-6',
+                  'left-0 sm:left-5',
                   'w-full sm:w-[var(--panel-w)]',
                   'h-[85dvh] sm:h-[var(--panel-h)]',
-                  'bg-white sm:rounded-2xl shadow-2xl sm:border border-slate-200/90',
+                  'bg-white sm:rounded-2xl shadow-2xl sm:border border-stone-200/90',
                   'flex flex-col overflow-hidden',
                 ].join(' ')
           }
           role="dialog"
-          aria-label="Chatram AI Shopping Copilot"
+          aria-label="Chatram AI Copilot"
         >
-          {/* ── Top-left resize handle (only in floating mode, never overlaps close button) ── */}
+          {/* ── Top-right resize handle (in floating bottom-left mode) ── */}
           {!isDocked && (
             <div
               onMouseDown={startResize}
-              title="Drag top-left corner to resize"
-              className="hidden sm:flex absolute top-0 left-0 w-5 h-5 cursor-nwse-resize z-20 items-start justify-start p-1 opacity-40 hover:opacity-100 transition-opacity"
+              title="Drag top-right corner to resize"
+              className="hidden sm:flex absolute top-0 right-0 w-4 h-4 cursor-nesw-resize z-20 items-start justify-end p-0.5 opacity-40 hover:opacity-100 transition-opacity"
             >
-              <svg viewBox="0 0 10 10" className="w-2.5 h-2.5 text-slate-300" fill="currentColor">
-                <path d="M0 0 L10 0 L0 10 Z" />
+              <svg viewBox="0 0 10 10" className="w-2.5 h-2.5 text-stone-400" fill="currentColor">
+                <path d="M0 0 L10 0 L10 10 Z" />
               </svg>
             </div>
           )}
 
-          {/* ── Panel Header ─────────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shrink-0">
+          {/* ── Panel Header (Matte Obsidian + AI Sparkle) ─────────── */}
+          <div className="flex items-center justify-between px-4 py-3 bg-[#141413] text-stone-100 border-b border-stone-800 shrink-0">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0">
-                <SparkleIcon className="w-4 h-4 text-indigo-300" />
+              <div className="w-8 h-8 rounded-xl bg-stone-800 border border-stone-700 flex items-center justify-center shrink-0">
+                <SparkleIcon className="w-4 h-4 text-amber-400" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-bold text-white truncate">Chatram AI Copilot</p>
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 </div>
-                <p className="text-[11px] text-indigo-200/80 leading-tight truncate">
-                  {streaming ? 'Running MCP tools…' : 'MCP Agent · Claude Haiku 4.5'}
+                <p className="text-[11px] text-stone-400 leading-tight truncate">
+                  {streaming ? 'Querying store catalog…' : 'Live Catalog & Order Assistant'}
                 </p>
               </div>
             </div>
@@ -743,7 +757,7 @@ export default function AIChatWidget() {
                 <button
                   onClick={clearChat}
                   title="Clear conversation"
-                  className="px-2 py-1 rounded-lg text-[11px] font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  className="px-2 py-1 rounded-lg text-[11px] font-medium text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer"
                 >
                   Clear
                 </button>
@@ -753,7 +767,7 @@ export default function AIChatWidget() {
               <button
                 onClick={() => setIsDocked((d) => !d)}
                 title={isDocked ? 'Switch to floating window' : 'Dock to right sidebar'}
-                className="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer"
               >
                 {isDocked ? (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
@@ -770,7 +784,7 @@ export default function AIChatWidget() {
               <button
                 onClick={() => setIsOpen(false)}
                 aria-label="Close AI Copilot"
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                   <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
@@ -781,11 +795,11 @@ export default function AIChatWidget() {
 
           {/* ── Active Product Context Bar (when viewing a product) ──────────── */}
           {activeProduct && (
-            <div className="bg-indigo-50/80 border-b border-indigo-100 px-3.5 py-2 flex items-center justify-between gap-2 shrink-0">
+            <div className="bg-stone-100 border-b border-stone-200 px-3.5 py-2 flex items-center justify-between gap-2 shrink-0">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0" />
-                <p className="text-xs font-medium text-indigo-950 truncate">
-                  Viewing: <span className="font-semibold">{activeProduct.name}</span>
+                <span className="w-2 h-2 rounded-full bg-teal-700 shrink-0" />
+                <p className="text-xs font-medium text-stone-800 truncate">
+                  Viewing: <span className="font-semibold text-stone-950">{activeProduct.name}</span>
                 </p>
               </div>
               <div className="flex items-center gap-1 shrink-0">
@@ -794,16 +808,16 @@ export default function AIChatWidget() {
                     sendMessage(`Summarize customer reviews and specs for ${activeProduct.name}`)
                   }
                   disabled={streaming || !isAuthenticated}
-                  className="text-[11px] font-semibold bg-white text-indigo-700 hover:bg-indigo-600 hover:text-white border border-indigo-200 rounded-md px-2 py-0.5 transition-colors cursor-pointer disabled:opacity-50"
+                  className="text-[11px] font-semibold bg-white text-stone-800 hover:bg-stone-900 hover:text-white border border-stone-300 rounded-md px-2 py-0.5 transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  Summarize
+                  Reviews
                 </button>
                 <button
                   onClick={() =>
                     sendMessage(`Find products similar to ${activeProduct.name}`)
                   }
                   disabled={streaming || !isAuthenticated}
-                  className="text-[11px] font-semibold bg-white text-indigo-700 hover:bg-indigo-600 hover:text-white border border-indigo-200 rounded-md px-2 py-0.5 transition-colors cursor-pointer disabled:opacity-50"
+                  className="text-[11px] font-semibold bg-white text-stone-800 hover:bg-stone-900 hover:text-white border border-stone-300 rounded-md px-2 py-0.5 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Similar
                 </button>
@@ -812,7 +826,7 @@ export default function AIChatWidget() {
           )}
 
           {/* ── Messages Feed ────────────────────────────────────────────────── */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin px-3.5 py-4 space-y-3.5 bg-slate-50/70">
+          <div className="flex-1 overflow-y-auto scrollbar-thin px-3.5 py-4 space-y-3.5 bg-[#f8f7f4]">
             {messages.length === 0 && !streaming ? (
               <SuggestionChips
                 onSelect={(prompt) => sendMessage(prompt)}
@@ -842,14 +856,14 @@ export default function AIChatWidget() {
           </div>
 
           {/* ── Input Bar ────────────────────────────────────────────────────── */}
-          <div className="shrink-0 px-3.5 py-3 bg-white border-t border-slate-200/80">
+          <div className="shrink-0 px-3.5 py-3 bg-white border-t border-stone-200/90">
             {!isAuthenticated && (
               <div className="flex items-center justify-between bg-amber-50 border border-amber-200/80 rounded-xl px-3 py-2 mb-2.5 text-xs text-amber-900">
-                <span>Sign in to use the AI-MCP Shopping Copilot</span>
+                <span>Sign in to use Chatram AI Copilot</span>
                 <Link
                   to="/login"
                   onClick={() => setIsOpen(false)}
-                  className="font-bold text-indigo-600 hover:underline ml-2 shrink-0"
+                  className="font-bold text-stone-900 hover:underline ml-2 shrink-0"
                 >
                   Sign In →
                 </Link>
@@ -865,19 +879,19 @@ export default function AIChatWidget() {
                 onKeyDown={handleKeyDown}
                 placeholder={
                   !isAuthenticated
-                    ? 'Sign in to chat with Chatram AI…'
+                    ? 'Sign in to chat with Chatram…'
                     : streaming
-                    ? 'Copilot is working…'
+                    ? 'Checking catalog…'
                     : activeProduct
-                    ? `Ask about ${activeProduct.name.slice(0, 24)}… or anything else`
-                    : 'Ask to search products, compare, or manage cart…'
+                    ? `Ask about ${activeProduct.name.slice(0, 24)}…`
+                    : 'Ask to find products, compare specs, or check cart…'
                 }
                 disabled={!isAuthenticated || streaming}
                 className={[
                   'auto-grow-textarea flex-1 px-3.5 py-2.5 text-sm rounded-xl border resize-none leading-snug outline-none transition-all scrollbar-thin',
                   isAuthenticated && !streaming
-                    ? 'border-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15 text-slate-900'
-                    : 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed',
+                    ? 'border-stone-300 bg-stone-50/70 focus:bg-white focus:border-stone-900 focus:ring-3 focus:ring-stone-900/10 text-stone-900'
+                    : 'border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed',
                 ].join(' ')}
               />
               <button
@@ -887,48 +901,45 @@ export default function AIChatWidget() {
                 className={[
                   'shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer',
                   canSend && isAuthenticated
-                    ? 'bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-sm shadow-indigo-500/25 active:scale-95'
-                    : 'bg-slate-100 text-slate-400 cursor-not-allowed',
+                    ? 'bg-[#141413] hover:bg-stone-800 text-white shadow-xs active:scale-95'
+                    : 'bg-stone-100 text-stone-400 cursor-not-allowed',
                 ].join(' ')}
               >
                 <SendIcon />
               </button>
             </div>
             <div className="flex items-center justify-between mt-1.5 px-1">
-              <p className="text-[10px] text-slate-400">
+              <p className="text-[10px] text-stone-400">
                 Enter to send · Shift+Enter for new line
               </p>
-              <p className="text-[10px] text-slate-400 hidden sm:block">
-                Shortcut: <kbd className="font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">Ctrl+K</kbd>
+              <p className="text-[10px] text-stone-400 hidden sm:block">
+                Shortcut: <kbd className="font-mono bg-stone-100 px-1 py-0.5 rounded border border-stone-200">Ctrl+K</kbd>
               </p>
             </div>
           </div>
         </aside>
       )}
 
-      {/* ─────────────────── Floating Trigger Pill ─────────────────── */}
-      {(!isOpen || !isDocked) && (
+      {/* ─────────────────── Floating Trigger Pill (Bottom-Left, Matte Obsidian) ─────────────────── */}
+      {!sellerChatOpen && (!isOpen || !isDocked) && (
         <button
           onClick={() => setIsOpen((v) => !v)}
-          aria-label={isOpen ? 'Close AI Copilot' : 'Open AI Copilot'}
+          aria-label={isOpen ? 'Close Chatram AI Copilot' : 'Open Chatram AI Copilot'}
           aria-expanded={isOpen}
           className={[
-            'fixed bottom-5 right-5 z-[9999]',
-            'flex items-center gap-2.5 pl-4 pr-5 h-12 rounded-full',
-            'font-bold text-sm transition-all duration-200 cursor-pointer',
+            'fixed bottom-5 left-5 z-[45]',
+            'flex items-center gap-2 pl-3.5 pr-4 h-11 rounded-full',
+            'font-semibold text-xs tracking-wide transition-all duration-200 cursor-pointer border',
             isOpen
-              ? 'bg-slate-900 text-white shadow-lg scale-95'
-              : 'bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 text-white ai-glow-pill hover:scale-105 active:scale-95',
+              ? 'bg-stone-900 text-stone-100 border-stone-700 shadow-lg scale-95'
+              : 'bg-[#141413] hover:bg-stone-800 text-stone-100 border-stone-700/90 ai-glow-pill hover:-translate-y-0.5 active:scale-95',
           ].join(' ')}
         >
-          <span className="relative shrink-0 flex items-center justify-center">
-            <SparkleIcon className="w-5 h-5 text-amber-300 relative" />
-          </span>
-
-          <span>{isOpen ? 'Close Copilot' : 'Ask AI Copilot'}</span>
+          <SparkleIcon className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>{isOpen ? 'Close Copilot' : 'Chatram AI Copilot'}</span>
 
           {unread > 0 && !isOpen && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+            <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-orange-600 text-white text-[10px] font-bold flex items-center justify-center">
               {unread > 9 ? '9+' : unread}
             </span>
           )}

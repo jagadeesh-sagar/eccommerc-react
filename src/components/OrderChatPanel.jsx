@@ -2,11 +2,13 @@
  * OrderChatPanel
  *
  * Real-time WebSocket order chat between buyer and seller.
+ * Automatically suppresses floating AI Copilot while active so it never obstructs typing space.
  * Includes IME-safe Enter handling and CSS `field-sizing: content`.
  */
 
 import { useState, useEffect, useRef } from 'react'
 import { useOrderChat } from '../hooks/useOrderChat'
+import { useAIChat } from '../context/AIChatContext'
 
 function formatMsgTime(iso) {
   if (!iso) return ''
@@ -33,9 +35,9 @@ function ConnectionStatus({ status, onReconnect }) {
         color: 'text-amber-600',
       },
       connected: { dot: 'bg-emerald-500', label: 'Live', color: 'text-emerald-600' },
-      disconnected: { dot: 'bg-slate-400', label: 'Offline', color: 'text-slate-500' },
+      disconnected: { dot: 'bg-stone-400', label: 'Offline', color: 'text-stone-500' },
       error: { dot: 'bg-rose-500', label: 'Connection error', color: 'text-rose-600' },
-    }[status] ?? { dot: 'bg-slate-400', label: status, color: 'text-slate-500' }
+    }[status] ?? { dot: 'bg-stone-400', label: status, color: 'text-stone-500' }
 
   return (
     <span className="flex items-center gap-1.5">
@@ -44,7 +46,7 @@ function ConnectionStatus({ status, onReconnect }) {
       {(status === 'error' || status === 'disconnected') && (
         <button
           onClick={onReconnect}
-          className="ml-1 text-xs font-bold text-indigo-600 hover:underline cursor-pointer"
+          className="ml-1 text-xs font-bold text-orange-600 hover:underline cursor-pointer"
         >
           Reconnect
         </button>
@@ -59,7 +61,7 @@ function RoleBadge({ role }) {
     <span
       className={[
         'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full',
-        isBuyer ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-700',
+        isBuyer ? 'bg-amber-100 text-amber-800' : 'bg-teal-100 text-teal-800',
       ].join(' ')}
     >
       {isBuyer ? 'Buyer' : 'Seller'}
@@ -69,7 +71,7 @@ function RoleBadge({ role }) {
 
 function ReadTick({ is_read }) {
   return (
-    <span className={`text-[10px] ml-1.5 ${is_read ? 'text-indigo-200' : 'text-white/60'}`}>
+    <span className={`text-[10px] ml-1.5 ${is_read ? 'text-emerald-400' : 'text-stone-400'}`}>
       {is_read ? '✓✓' : '✓'}
     </span>
   )
@@ -80,7 +82,7 @@ function MessageBubble({ msg, isMine }) {
     <div className={`flex flex-col gap-0.5 ${isMine ? 'items-end' : 'items-start'}`}>
       {!isMine && (
         <div className="flex items-center gap-1.5 px-1">
-          <span className="text-[11px] font-semibold text-slate-500 truncate max-w-[120px]">
+          <span className="text-[11px] font-semibold text-stone-500 truncate max-w-[120px]">
             {msg.sender}
           </span>
           {msg.sender_role && <RoleBadge role={msg.sender_role} />}
@@ -91,15 +93,15 @@ function MessageBubble({ msg, isMine }) {
         className={[
           'max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed shadow-2xs break-words',
           isMine
-            ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-br-xs'
-            : 'bg-white border border-slate-200/90 text-slate-800 rounded-bl-xs',
+            ? 'bg-stone-900 text-stone-50 rounded-br-xs'
+            : 'bg-white border border-stone-200/90 text-stone-800 rounded-bl-xs',
         ].join(' ')}
       >
         {msg.message}
         {isMine && <ReadTick is_read={msg.is_read} />}
       </div>
 
-      <span className="text-[10px] text-slate-400 px-1">{formatMsgTime(msg.timestamp)}</span>
+      <span className="text-[10px] text-stone-400 px-1">{formatMsgTime(msg.timestamp)}</span>
     </div>
   )
 }
@@ -107,11 +109,11 @@ function MessageBubble({ msg, isMine }) {
 function UnreadDivider({ count }) {
   return (
     <div className="flex items-center gap-2 my-1">
-      <div className="flex-1 h-px bg-indigo-200" />
-      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full whitespace-nowrap">
+      <div className="flex-1 h-px bg-amber-200" />
+      <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full whitespace-nowrap">
         {count} unread {count === 1 ? 'message' : 'messages'}
       </span>
-      <div className="flex-1 h-px bg-indigo-200" />
+      <div className="flex-1 h-px bg-amber-200" />
     </div>
   )
 }
@@ -119,16 +121,16 @@ function UnreadDivider({ count }) {
 function TypingIndicator({ name }) {
   return (
     <div className="flex items-center gap-2 px-1">
-      <div className="flex gap-1 items-center bg-white border border-slate-200 rounded-2xl rounded-bl-xs px-3 py-2 shadow-2xs">
+      <div className="flex gap-1 items-center bg-white border border-stone-200 rounded-2xl rounded-bl-xs px-3 py-2 shadow-2xs">
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block"
+            className="w-1.5 h-1.5 rounded-full bg-teal-600 inline-block"
             style={{ animation: 'typing-dot 1.2s infinite', animationDelay: `${i * 0.2}s` }}
           />
         ))}
       </div>
-      <span className="text-[11px] text-slate-400">{name} is typing…</span>
+      <span className="text-[11px] text-stone-400">{name} is typing…</span>
       <style>{`
         @keyframes typing-dot {
           0%, 60%, 100% { transform: translateY(0); opacity: .4; }
@@ -142,17 +144,25 @@ function TypingIndicator({ name }) {
 function EmptyChat({ otherPartyName }) {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-2 select-none text-center px-4">
-      <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl">
+      <div className="w-12 h-12 rounded-2xl bg-stone-100 border border-stone-200 text-stone-600 flex items-center justify-center text-xl">
         💬
       </div>
-      <p className="text-xs text-slate-500">
-        No messages yet. Start a conversation with <strong>{otherPartyName}</strong>!
+      <p className="text-xs text-stone-500">
+        No messages yet. Start a direct conversation with <strong>{otherPartyName}</strong>.
       </p>
     </div>
   )
 }
 
 export default function OrderChatPanel({ orderId, currentUser, otherPartyName }) {
+  const { setSellerChatOpen } = useAIChat()
+
+  // Notify AIChatContext while Seller Chat is mounted so the floating AI Copilot never obstructs the input bar
+  useEffect(() => {
+    setSellerChatOpen(true)
+    return () => setSellerChatOpen(false)
+  }, [setSellerChatOpen])
+
   const {
     messages,
     sendMessage,
@@ -245,13 +255,13 @@ export default function OrderChatPanel({ orderId, currentUser, otherPartyName })
   const canSend = connectionStatus === 'connected' && inputText.trim().length > 0
 
   return (
-    <div className="flex flex-col h-full border border-slate-200/80 rounded-2xl overflow-hidden bg-slate-50 shadow-2xs">
+    <div className="flex flex-col h-full border border-stone-200/90 rounded-2xl overflow-hidden bg-[#f8f7f4] shadow-2xs">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-slate-200/80 shrink-0">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-stone-200/80 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-800">Chat with {otherPartyName}</span>
+          <span className="text-xs font-bold text-stone-900">Chat with {otherPartyName}</span>
           {unreadCount > 0 && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-600 text-white">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-600 text-white">
               {unreadCount}
             </span>
           )}
@@ -260,11 +270,11 @@ export default function OrderChatPanel({ orderId, currentUser, otherPartyName })
       </div>
 
       {hasMore && (
-        <div className="flex justify-center py-2 bg-white border-b border-slate-100">
+        <div className="flex justify-center py-2 bg-white border-b border-stone-100">
           <button
             onClick={loadMoreHistory}
             disabled={loadingHistory}
-            className="text-xs text-indigo-600 hover:underline font-semibold disabled:opacity-50 cursor-pointer"
+            className="text-xs text-stone-700 hover:text-stone-900 hover:underline font-semibold disabled:opacity-50 cursor-pointer"
           >
             {loadingHistory ? 'Loading…' : '↑ Load older messages'}
           </button>
@@ -293,7 +303,7 @@ export default function OrderChatPanel({ orderId, currentUser, otherPartyName })
       </div>
 
       {/* Input Bar */}
-      <div className="px-3 py-2.5 bg-white border-t border-slate-200/80 flex items-end gap-2 shrink-0">
+      <div className="px-3 py-2.5 bg-white border-t border-stone-200/90 flex items-end gap-2 shrink-0">
         <textarea
           ref={inputRef}
           rows={1}
@@ -311,8 +321,8 @@ export default function OrderChatPanel({ orderId, currentUser, otherPartyName })
           className={[
             'auto-grow-textarea flex-1 px-3.5 py-2 text-sm rounded-xl border resize-none leading-snug outline-none transition-all scrollbar-thin',
             connectionStatus === 'connected'
-              ? 'border-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15'
-              : 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed',
+              ? 'border-stone-300 bg-stone-50/70 focus:bg-white focus:border-stone-900 focus:ring-3 focus:ring-stone-900/10'
+              : 'border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed',
           ].join(' ')}
         />
 
@@ -323,8 +333,8 @@ export default function OrderChatPanel({ orderId, currentUser, otherPartyName })
           className={[
             'shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer',
             canSend
-              ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs active:scale-95'
-              : 'bg-slate-100 text-slate-400 cursor-not-allowed',
+              ? 'bg-stone-900 hover:bg-stone-800 text-white shadow-xs active:scale-95'
+              : 'bg-stone-100 text-stone-400 cursor-not-allowed',
           ].join(' ')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">

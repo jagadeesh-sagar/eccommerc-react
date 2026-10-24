@@ -1,5 +1,5 @@
 /**
- * Register Page — Modern Split-Screen / Card Layout for Chatram
+ * Register Page — Editorial Split-Screen / Card Layout for Chatram
  *
  * - POST /api/register/ with all fields + Buyer/Seller role selection cards
  * - Stores user in AuthContext on success and redirects to /
@@ -24,10 +24,10 @@ function FormField({
 }) {
   return (
     <div className="mb-3.5">
-      <label htmlFor={id} className="block text-xs font-bold text-slate-700 mb-1">
+      <label htmlFor={id} className="block text-xs font-bold text-stone-700 mb-1">
         {label}
       </label>
-      {hint && <p className="text-[11px] text-slate-400 mb-1">{hint}</p>}
+      {hint && <p className="text-[11px] text-stone-400 mb-1">{hint}</p>}
       <input
         id={id}
         name={id}
@@ -37,10 +37,10 @@ function FormField({
         value={value}
         onChange={onChange}
         className={[
-          'w-full px-3.5 py-2 text-sm rounded-xl border bg-slate-50/50 focus:bg-white',
+          'w-full px-3.5 py-2 text-sm rounded-xl border bg-stone-50/70 focus:bg-white',
           'outline-none transition-all duration-150',
-          'focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15',
-          error ? 'border-rose-500 bg-rose-50/30' : 'border-slate-300',
+          'focus:border-stone-900 focus:ring-3 focus:ring-stone-900/10',
+          error ? 'border-rose-500 bg-rose-50/30' : 'border-stone-300',
         ].join(' ')}
       />
       {error && (
@@ -58,7 +58,7 @@ function RoleSelector({ value, onChange, error }) {
       id: 'buyer',
       icon: '🛍️',
       title: 'Shopper (Buyer)',
-      desc: 'Browse products, use AI Copilot & place orders',
+      desc: 'Browse products, use Chatram AI Copilot & place orders',
     },
     {
       id: 'seller',
@@ -70,7 +70,7 @@ function RoleSelector({ value, onChange, error }) {
 
   return (
     <div className="mb-4">
-      <p className="text-xs font-bold text-slate-700 mb-2">Choose your account type</p>
+      <p className="text-xs font-bold text-stone-700 mb-2">Choose your account type</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         {roles.map((r) => {
           const active = value === r.id
@@ -80,8 +80,8 @@ function RoleSelector({ value, onChange, error }) {
               className={[
                 'flex items-start gap-2.5 p-3 rounded-2xl border-2 cursor-pointer transition-all',
                 active
-                  ? 'border-indigo-600 bg-indigo-50/40 shadow-2xs'
-                  : 'border-slate-200 hover:border-slate-300 bg-white',
+                  ? 'border-stone-900 bg-stone-50 shadow-2xs'
+                  : 'border-stone-200 hover:border-stone-300 bg-white',
               ].join(' ')}
             >
               <input
@@ -94,8 +94,8 @@ function RoleSelector({ value, onChange, error }) {
               />
               <span className="text-lg leading-none mt-0.5">{r.icon}</span>
               <div>
-                <p className="text-xs font-bold text-slate-900">{r.title}</p>
-                <p className="text-[10px] text-slate-500 leading-snug mt-0.5">{r.desc}</p>
+                <p className="text-xs font-bold text-stone-900">{r.title}</p>
+                <p className="text-[10px] text-stone-500 leading-snug mt-0.5">{r.desc}</p>
               </div>
             </label>
           )
@@ -193,53 +193,51 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col lg:flex-row">
       {/* Left Brand Showcase Panel */}
-      <div className="hidden lg:flex lg:w-5/12 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-5/12 bg-[#141413] text-white p-12 flex-col justify-between">
         <div>
           <Link to="/" className="inline-flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-amber-500 p-[1px]">
-              <div className="w-full h-full bg-slate-900 rounded-[11px] flex items-center justify-center">
-                <span className="text-xl font-extrabold text-white">C</span>
-              </div>
+            <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center">
+              <span className="text-xl font-extrabold text-white">C</span>
             </div>
             <span className="text-2xl font-extrabold tracking-tight text-white">Chatram</span>
           </Link>
         </div>
 
         <div className="max-w-md space-y-5">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
-            <SparkleIcon className="w-3.5 h-3.5 text-amber-300" />
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-stone-800 text-stone-200 border border-stone-700">
+            <SparkleIcon className="w-3.5 h-3.5 text-emerald-400" />
             <span>Join Chatram Today</span>
           </span>
           <h2 className="text-3xl xl:text-4xl font-extrabold tracking-tight leading-tight">
-            One platform for AI-assisted shopping &amp; merchant growth.
+            One platform for curated shopping &amp; merchant growth.
           </h2>
-          <p className="text-sm text-indigo-200/80 leading-relaxed">
-            Create a shopper account to use the AI-MCP Copilot, or register as a seller to launch your store in minutes.
+          <p className="text-sm text-stone-400 leading-relaxed">
+            Create a shopper account to browse and compare inventory, or register as a seller to launch your store in minutes.
           </p>
         </div>
 
-        <div className="text-xs text-slate-400">
-          © {new Date().getFullYear()} Chatram Commerce
+        <div className="text-xs text-stone-500">
+          © {new Date().getFullYear()} Chatram Marketplace
         </div>
       </div>
 
       {/* Right Form Panel */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 sm:px-8">
         <Link to="/" className="lg:hidden flex items-center gap-2.5 mb-6">
-          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-extrabold text-white">
+          <div className="w-9 h-9 rounded-xl bg-orange-600 flex items-center justify-center font-extrabold text-white">
             C
           </div>
-          <span className="text-2xl font-extrabold tracking-tight text-slate-900">Chatram</span>
+          <span className="text-2xl font-extrabold tracking-tight text-stone-900">Chatram</span>
         </Link>
 
-        <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 w-full max-w-[480px] shadow-xl shadow-slate-900/5">
+        <div className="bg-white border border-stone-200/90 rounded-3xl p-6 sm:p-8 w-full max-w-[480px] shadow-xl shadow-stone-900/5">
           <div className="mb-5">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight">
               Create your account
             </h1>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-stone-500 mt-1">
               Get started with Chatram in seconds
             </p>
           </div>
@@ -321,15 +319,15 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 px-4 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20 disabled:opacity-60 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="w-full mt-2 py-3 px-4 rounded-xl text-sm font-bold bg-stone-900 hover:bg-stone-800 text-white shadow-xs disabled:opacity-60 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               {loading ? 'Creating account…' : 'Create Chatram Account'}
             </button>
           </form>
 
-          <p className="mt-5 text-center text-xs text-slate-500">
+          <p className="mt-5 text-center text-xs text-stone-500">
             Already have an account?{' '}
-            <Link to="/login" className="text-indigo-600 font-bold hover:underline">
+            <Link to="/login" className="text-stone-900 font-bold hover:underline">
               Sign in →
             </Link>
           </p>

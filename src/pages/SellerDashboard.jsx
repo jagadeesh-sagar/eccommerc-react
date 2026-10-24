@@ -247,7 +247,7 @@ function Field({ label, error, required, children }) {
 const inputCls = (err) =>
   [
     "w-full px-3.5 py-2 text-sm border rounded-xl outline-none transition-all bg-white",
-    "focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20",
+    "focus:border-stone-900 focus:ring-2 focus:ring-stone-900/15",
     err ? "border-rose-500" : "border-slate-300",
   ].join(" ");
 
@@ -283,7 +283,7 @@ const TABS = ["Products", "Create Product", "Brands", "Q&A", "Orders"];
 
 function TabBar({ active, onChange }) {
   return (
-    <div className="flex overflow-x-auto no-scrollbar gap-1.5 border-b border-slate-200 pb-3 mb-6">
+    <div className="flex overflow-x-auto no-scrollbar gap-1.5 border-b border-stone-200 pb-3 mb-6">
       {TABS.map((t) => (
         <button
           key={t}
@@ -291,8 +291,8 @@ function TabBar({ active, onChange }) {
           className={[
             "flex-shrink-0 px-4 py-2 text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer",
             active === t
-              ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/20"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100",
+              ? "bg-stone-900 text-white shadow-sm"
+              : "text-stone-600 hover:text-stone-900 hover:bg-stone-100",
           ].join(" ")}
         >
           {t}
@@ -2526,16 +2526,16 @@ export default function SellerDashboard() {
 
   if (sellerStatus === "none") {
     return (
-      <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+      <div className="min-h-screen bg-[#f7f6f2] flex flex-col">
         <Header />
 
-        <div className="max-w-lg w-full mx-auto mt-12 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-sm">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-3">
+        <div className="max-w-lg w-full mx-auto mt-12 bg-white p-6 sm:p-8 rounded-2xl border border-stone-200/80 shadow-sm">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-semibold mb-3">
             Chatram Seller Hub
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-1.5">Become a Chatram Seller</h1>
+          <h1 className="text-2xl font-bold text-stone-900 mb-1.5">Become a Chatram Seller</h1>
 
-          <p className="text-sm text-slate-500 mb-6">
+          <p className="text-sm text-stone-500 mb-6">
             Register your business details below to list products, manage inventory, and answer customer Q&amp;A.
           </p>
 
@@ -2546,25 +2546,25 @@ export default function SellerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col">
       <Header />
 
       <main className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-1.5">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 text-xs font-semibold mb-1.5">
               Merchant Portal
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
               Seller Hub
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-sm text-stone-500 mt-0.5">
               Manage your catalog, S3 media, brands, customer Q&amp;A, and live order fulfillment
             </p>
           </div>
           <button
             onClick={() => setActiveTab("Create Product")}
-            className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+            className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-orange-600 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
           >
             <span>+ New Product</span>
           </button>

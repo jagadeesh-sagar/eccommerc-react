@@ -3,7 +3,7 @@
  *
  * Modern two-column layout:
  *   Left  (flex-1) — list of cart line-items with pill quantity stepper + delete + save to wishlist
- *   Right (sidebar) — sticky Order Summary with subtotal + Proceed to Checkout + AI Cart Review
+ *   Right (sidebar) — sticky Order Summary with subtotal + Proceed to Checkout + Shopping Guide Review
  */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -24,7 +24,7 @@ function formatPrice(num) {
 }
 
 function pseudoColor(str = '') {
-  const palette = ['#eef2ff', '#fae8ff', '#ecfdf5', '#fffbeb', '#f5f3ff', '#fff1f2', '#ecfeff']
+  const palette = ['#f5f5f4', '#fef3c7', '#ecfdf5', '#ffedd5', '#f3f4f6', '#fae8ff', '#e0f2fe']
   let h = 0
   for (const c of str) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff
   return palette[Math.abs(h) % palette.length]
@@ -64,12 +64,12 @@ function CartSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex gap-4 p-5 bg-white rounded-2xl border border-slate-200/80">
-          <div className="w-24 h-24 bg-slate-100 rounded-xl shrink-0" />
+        <div key={i} className="flex gap-4 p-5 bg-white rounded-2xl border border-stone-200/80">
+          <div className="w-24 h-24 bg-stone-100 rounded-xl shrink-0" />
           <div className="flex-1 space-y-2.5 py-1">
-            <div className="h-4 bg-slate-100 rounded-md w-2/3" />
-            <div className="h-3 bg-slate-100 rounded-md w-1/3" />
-            <div className="h-5 bg-slate-100 rounded-md w-1/4 mt-3" />
+            <div className="h-4 bg-stone-100 rounded-md w-2/3" />
+            <div className="h-3 bg-stone-100 rounded-md w-1/3" />
+            <div className="h-5 bg-stone-100 rounded-md w-1/4 mt-3" />
           </div>
         </div>
       ))}
@@ -80,26 +80,26 @@ function CartSkeleton() {
 function EmptyCart({ onAskAI }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 text-3xl border border-indigo-100">
+      <div className="w-16 h-16 rounded-2xl bg-stone-100 text-stone-700 flex items-center justify-center mb-4 text-3xl border border-stone-200">
         🛒
       </div>
-      <h2 className="text-xl font-extrabold text-slate-900 mb-1.5">Your Shopping Cart is empty</h2>
-      <p className="text-sm text-slate-500 mb-6 max-w-sm">
-        Browse our storefront or ask the Chatram AI Copilot to recommend products and add them directly to your cart.
+      <h2 className="text-xl font-extrabold text-stone-900 mb-1.5">Your Shopping Cart is empty</h2>
+      <p className="text-sm text-stone-500 mb-6 max-w-sm">
+        Browse our storefront or ask Chatram AI Copilot to recommend products for your budget.
       </p>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link
           to="/"
-          className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-indigo-600 text-white transition-colors shadow-xs"
+          className="px-6 py-2.5 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white transition-colors shadow-xs"
         >
           Browse Products →
         </Link>
         <button
           onClick={onAskAI}
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 transition-colors cursor-pointer"
         >
-          <SparkleIcon className="w-3.5 h-3.5" />
-          <span>Ask AI for Ideas</span>
+          <SparkleIcon className="w-3.5 h-3.5 text-amber-500" />
+          <span>Ask Chatram AI Copilot</span>
         </button>
       </div>
     </div>
@@ -152,15 +152,15 @@ function CartItem({ item, onQuantityChange, onDelete, onSaveForLater }) {
   return (
     <div
       className={[
-        'flex flex-col sm:flex-row gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs transition-all',
-        deleting ? 'opacity-40 pointer-events-none' : 'hover:border-slate-300',
+        'flex flex-col sm:flex-row gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-stone-200/90 shadow-2xs transition-all',
+        deleting ? 'opacity-40 pointer-events-none' : 'hover:border-stone-300',
       ].join(' ')}
     >
       <div className="flex gap-4 flex-1 min-w-0">
         {/* Thumbnail */}
         <Link to={`/product/${product.id}`} className="shrink-0">
           <div
-            className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl border border-slate-100 flex items-center justify-center overflow-hidden p-2"
+            className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl border border-stone-100 flex items-center justify-center overflow-hidden p-2"
             style={{ backgroundColor: primaryImg ? '#ffffff' : bg }}
           >
             {primaryImg ? (
@@ -170,7 +170,7 @@ function CartItem({ item, onQuantityChange, onDelete, onSaveForLater }) {
                 className="w-full h-full object-contain"
               />
             ) : (
-              <span className="text-3xl font-extrabold text-slate-300 select-none">
+              <span className="text-3xl font-extrabold text-stone-300 select-none">
                 {(product.product_name ?? '?')[0].toUpperCase()}
               </span>
             )}
@@ -181,54 +181,54 @@ function CartItem({ item, onQuantityChange, onDelete, onSaveForLater }) {
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="flex items-center gap-2 mb-1">
             {product.brand_name && (
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
                 {product.brand_name}
               </span>
             )}
-            <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
               In Stock
             </span>
           </div>
 
           <Link
             to={`/product/${product.id}`}
-            className="text-sm sm:text-base font-bold text-slate-900 hover:text-indigo-600 line-clamp-2 leading-snug mb-1 transition-colors"
+            className="text-sm sm:text-base font-bold text-stone-900 hover:text-orange-700 line-clamp-2 leading-snug mb-1 transition-colors"
           >
             {product.product_name}
           </Link>
 
           {label && (
-            <p className="text-xs text-slate-500 mb-1">
-              <span className="font-semibold text-slate-700">Option:</span> {label}
+            <p className="text-xs text-stone-500 mb-1">
+              <span className="font-semibold text-stone-700">Option:</span> {label}
             </p>
           )}
 
           {product.seller_name && (
-            <p className="text-xs text-slate-400 mb-3">
-              Sold by <span className="text-slate-600 font-medium">{product.seller_name}</span>
+            <p className="text-xs text-stone-400 mb-3">
+              Sold by <span className="text-stone-600 font-medium">{product.seller_name}</span>
             </p>
           )}
 
           {/* Controls Row */}
           <div className="flex items-center flex-wrap gap-3 mt-auto pt-1">
             {/* Pill Stepper */}
-            <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5 h-8 text-xs select-none">
+            <div className="inline-flex items-center rounded-xl border border-stone-200 bg-stone-50 p-0.5 h-8 text-xs select-none">
               <button
                 onClick={() => handleQtyChange(qty - 1)}
                 disabled={qty <= 1 || updatingQty}
                 aria-label="Decrease quantity"
-                className="w-7 h-full rounded-lg flex items-center justify-center hover:bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold cursor-pointer"
+                className="w-7 h-full rounded-lg flex items-center justify-center hover:bg-white text-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold cursor-pointer"
               >
                 −
               </button>
-              <span className="px-3 h-full flex items-center justify-center min-w-[2.25rem] font-mono font-bold text-slate-900">
+              <span className="px-3 h-full flex items-center justify-center min-w-[2.25rem] font-mono font-bold text-stone-900">
                 {updatingQty ? '…' : qty}
               </span>
               <button
                 onClick={() => handleQtyChange(qty + 1)}
                 disabled={updatingQty}
                 aria-label="Increase quantity"
-                className="w-7 h-full rounded-lg flex items-center justify-center hover:bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold cursor-pointer"
+                className="w-7 h-full rounded-lg flex items-center justify-center hover:bg-white text-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold cursor-pointer"
               >
                 +
               </button>
@@ -244,7 +244,7 @@ function CartItem({ item, onQuantityChange, onDelete, onSaveForLater }) {
 
             <button
               onClick={() => onSaveForLater(item)}
-              className="text-xs font-semibold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="text-xs font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               ♡ Move to Wishlist
             </button>
@@ -253,12 +253,12 @@ function CartItem({ item, onQuantityChange, onDelete, onSaveForLater }) {
       </div>
 
       {/* Line Total Price */}
-      <div className="sm:text-right flex sm:flex-col items-baseline sm:items-end justify-between border-t sm:border-t-0 border-slate-100 pt-2 sm:pt-0 shrink-0">
-        <p className="text-lg font-extrabold font-mono text-slate-900">
+      <div className="sm:text-right flex sm:flex-col items-baseline sm:items-end justify-between border-t sm:border-t-0 border-stone-100 pt-2 sm:pt-0 shrink-0">
+        <p className="text-lg font-extrabold font-mono text-stone-900">
           {lineTotal != null ? formatPrice(lineTotal) : '—'}
         </p>
         {qty > 1 && unitPrice != null && (
-          <p className="text-xs font-mono text-slate-400 mt-0.5">{formatPrice(unitPrice)} each</p>
+          <p className="text-xs font-mono text-stone-400 mt-0.5">{formatPrice(unitPrice)} each</p>
         )}
       </div>
     </div>
@@ -278,24 +278,24 @@ function OrderSummary({ items, onProceed, onAskAIReview }) {
   const totalItems = items.reduce((s, item) => s + item.quantity, 0)
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-2xs sticky top-28 space-y-5">
+    <div className="bg-white border border-stone-200/90 rounded-3xl p-6 shadow-2xs sticky top-28 space-y-5">
       <div>
-        <h2 className="text-base font-extrabold text-slate-900 mb-1">Order Summary</h2>
-        <p className="text-xs text-slate-500">
+        <h2 className="text-base font-extrabold text-stone-900 mb-1">Order Summary</h2>
+        <p className="text-xs text-stone-500">
           {totalItems} {totalItems === 1 ? 'item' : 'items'} in your cart
         </p>
       </div>
 
-      <div className="space-y-2.5 text-sm text-slate-600 border-t border-slate-100 pt-4">
+      <div className="space-y-2.5 text-sm text-stone-600 border-t border-stone-100 pt-4">
         <div className="flex justify-between">
           <span>Items Subtotal</span>
-          <span className="font-mono font-semibold text-slate-800">{formatPrice(subtotal)}</span>
+          <span className="font-mono font-semibold text-stone-800">{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between">
           <span>Standard Delivery</span>
-          <span className="text-emerald-600 font-bold">FREE</span>
+          <span className="text-emerald-700 font-bold">FREE</span>
         </div>
-        <div className="flex justify-between items-baseline font-extrabold text-slate-900 text-lg pt-3 border-t border-slate-200/80">
+        <div className="flex justify-between items-baseline font-extrabold text-stone-900 text-lg pt-3 border-t border-stone-200/80">
           <span>Estimated Total</span>
           <span className="font-mono text-xl">{formatPrice(subtotal)}</span>
         </div>
@@ -303,20 +303,20 @@ function OrderSummary({ items, onProceed, onAskAIReview }) {
 
       <button
         onClick={onProceed}
-        className="w-full py-3.5 px-5 rounded-2xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20 transition-all active:scale-[0.99] cursor-pointer"
+        className="w-full py-3.5 px-5 rounded-2xl text-sm font-bold bg-stone-900 hover:bg-stone-800 text-white shadow-xs transition-all active:scale-[0.99] cursor-pointer"
       >
         Proceed to Checkout →
       </button>
 
       <button
         onClick={onAskAIReview}
-        className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/70 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+        className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-stone-50 hover:bg-stone-100 text-stone-800 border border-stone-200/90 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
       >
-        <SparkleIcon className="w-3.5 h-3.5" />
-        <span>Ask AI to review my cart</span>
+        <SparkleIcon className="w-3.5 h-3.5 text-amber-500" />
+        <span>Review cart with Chatram AI Copilot</span>
       </button>
 
-      <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-400 text-center space-y-1">
+      <div className="pt-2 border-t border-stone-100 text-[11px] text-stone-400 text-center space-y-1">
         <p>🔒 256-bit SSL encrypted checkout</p>
         <p>Supports UPI, Cards, NetBanking &amp; Cash on Delivery</p>
       </div>
@@ -422,23 +422,23 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col">
       <Header />
 
       <main className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {!loading && (
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight">
                 Shopping Cart
               </h1>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-stone-500 mt-0.5">
                 Review your items and proceed to secure checkout
               </p>
             </div>
             <Link
               to="/"
-              className="text-xs font-semibold text-indigo-600 hover:underline"
+              className="text-xs font-semibold text-stone-700 hover:text-stone-950 hover:underline"
             >
               ← Continue shopping
             </Link>
@@ -460,11 +460,11 @@ export default function Cart() {
               <CartSkeleton />
             </div>
             <div className="lg:w-80 xl:w-96 shrink-0">
-              <div className="h-64 bg-white rounded-3xl border border-slate-200/80 animate-pulse" />
+              <div className="h-64 bg-white rounded-3xl border border-stone-200/80 animate-pulse" />
             </div>
           </div>
         ) : items.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs">
+          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-2xs">
             <EmptyCart onAskAI={() => askAI('Recommend the best products to add to my cart')} />
           </div>
         ) : (
@@ -500,7 +500,7 @@ export default function Cart() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-xl bg-slate-900 text-white text-xs font-semibold"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-xl bg-[#141413] text-white text-xs font-semibold"
         >
           {toast}
         </div>

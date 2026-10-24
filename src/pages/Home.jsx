@@ -1,5 +1,5 @@
 /**
- * Home — Modern Widescreen Product Discovery & AI-Assisted Storefront
+ * Home — Editorial Widescreen Product Discovery & Storefront
  *
  * URL query params:
  *   ?n=<term>      → GET /user/product/search/?n=<term>&page=N
@@ -44,7 +44,7 @@ const CAT_ICONS = {
   bag: '👜', luggage: '🧳',
   tool: '🔧', hardware: '🔧',
   electronic: '⚡',
-  default: '✨',
+  default: '🏷️',
 }
 
 function getCatIcon(name = '') {
@@ -98,7 +98,7 @@ function formatPrice(price) {
 }
 
 function pseudoColor(str = '') {
-  const palette = ['#eef2ff', '#fae8ff', '#ecfdf5', '#fffbeb', '#f5f3ff', '#fff1f2', '#ecfeff', '#f8fafc']
+  const palette = ['#f5f5f4', '#fef3c7', '#ecfdf5', '#ffedd5', '#f3f4f6', '#fae8ff', '#e0f2fe', '#fafaf9']
   let h = 0
   for (const ch of str) h = (h * 31 + ch.charCodeAt(0)) & 0xffffffff
   return palette[Math.abs(h) % palette.length]
@@ -131,17 +131,17 @@ function Pagination({ page, totalPages, totalCount, pageSize, hasNext, hasPrev, 
 
   const base =
     'inline-flex items-center justify-center h-9 min-w-[2.25rem] px-3 rounded-xl text-xs font-semibold transition-all select-none'
-  const active = 'bg-indigo-600 text-white shadow-xs cursor-default'
+  const active = 'bg-stone-900 text-white shadow-xs cursor-default'
   const idle =
-    'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 cursor-pointer'
-  const disabled = 'bg-slate-50 border border-slate-200/60 text-slate-300 cursor-not-allowed'
+    'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300 cursor-pointer'
+  const disabled = 'bg-stone-100 border border-stone-200/60 text-stone-400 cursor-not-allowed'
 
   return (
     <div className="flex flex-col items-center gap-3 mt-10 mb-4">
       {totalCount > 0 && (
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-stone-500">
           {from && to ? `Showing ${from.toLocaleString()}–${to.toLocaleString()} of ` : ''}
-          <span className="font-bold text-slate-700">{totalCount.toLocaleString()}</span> products
+          <span className="font-bold text-stone-800">{totalCount.toLocaleString()}</span> products
         </p>
       )}
 
@@ -156,7 +156,7 @@ function Pagination({ page, totalPages, totalCount, pageSize, hasNext, hasPrev, 
 
         {pages.map((p, i) =>
           p === '…' ? (
-            <span key={`el-${i}`} className="px-1 text-slate-400 text-sm">
+            <span key={`el-${i}`} className="px-1 text-stone-400 text-sm">
               …
             </span>
           ) : (
@@ -194,7 +194,7 @@ function HeartIcon({ filled }) {
       <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
     </svg>
   ) : (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4 text-slate-600">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4 text-stone-600">
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
     </svg>
   )
@@ -243,11 +243,11 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart, onAsk
   return (
     <div
       onClick={() => productId && navigate(`/product/${productId}`)}
-      className="bg-white rounded-2xl border border-slate-200/80 flex flex-col overflow-hidden cursor-pointer group hover:shadow-xl hover:shadow-slate-900/5 hover:-translate-y-1 hover:border-indigo-200 transition-all duration-300"
+      className="bg-white rounded-2xl border border-stone-200/90 flex flex-col overflow-hidden cursor-pointer group hover:shadow-lg hover:shadow-stone-900/5 hover:-translate-y-0.5 hover:border-stone-300 transition-all duration-300"
     >
       {/* Image Canvas */}
       <div
-        className="relative flex items-center justify-center h-44 sm:h-52 text-5xl font-bold text-slate-300 select-none overflow-hidden p-4 border-b border-slate-100"
+        className="relative flex items-center justify-center h-44 sm:h-52 text-5xl font-bold text-stone-300 select-none overflow-hidden p-4 border-b border-stone-100"
         style={{ backgroundColor: showImg ? '#ffffff' : bg }}
       >
         {showImg ? (
@@ -264,7 +264,7 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart, onAsk
 
         {/* Category pill badge (top-left) */}
         {product.category_name && (
-          <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-slate-900/75 backdrop-blur-xs text-white text-[10px] font-semibold capitalize">
+          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-stone-900/80 backdrop-blur-xs text-white text-[10px] font-semibold capitalize">
             {product.category_name}
           </span>
         )}
@@ -274,7 +274,7 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart, onAsk
           <button
             onClick={handleWishlist}
             disabled={togglingWish}
-            className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs hover:bg-white border border-slate-200/80 shadow-xs flex items-center justify-center transition-all disabled:opacity-50 cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white/95 backdrop-blur-xs hover:bg-white border border-stone-200/90 shadow-xs flex items-center justify-center transition-all disabled:opacity-50 cursor-pointer"
             aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             title={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
           >
@@ -283,9 +283,9 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart, onAsk
 
           <button
             onClick={handleAskClick}
-            className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs hover:bg-indigo-600 text-indigo-600 hover:text-white border border-indigo-200/80 shadow-xs flex items-center justify-center transition-all cursor-pointer"
-            title={`Ask AI Copilot about ${product.product_name}`}
-            aria-label={`Ask AI about ${product.product_name}`}
+            className="w-8 h-8 rounded-full bg-white/95 backdrop-blur-xs hover:bg-stone-900 text-stone-700 hover:text-amber-400 border border-stone-200/90 shadow-xs flex items-center justify-center transition-all cursor-pointer"
+            title={`Ask Chatram AI Copilot about ${product.product_name}`}
+            aria-label={`Ask Chatram AI Copilot about ${product.product_name}`}
           >
             <SparkleIcon className="w-3.5 h-3.5" />
           </button>
@@ -295,35 +295,35 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart, onAsk
       {/* Product Details */}
       <div className="flex flex-col flex-1 p-3.5 sm:p-4 gap-1.5">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 truncate">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 truncate">
             {product.brand_name || 'Chatram Select'}
           </span>
 
           {rating > 0 ? (
-            <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 border border-amber-200/60 text-[11px] font-bold text-slate-800 shrink-0">
+            <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 border border-amber-200/60 text-[11px] font-bold text-stone-800 shrink-0">
               <span className="text-amber-500">★</span>
               <span>{rating.toFixed(1)}</span>
               {reviewCount > 0 && (
-                <span className="text-slate-400 font-normal">({reviewCount})</span>
+                <span className="text-stone-400 font-normal">({reviewCount})</span>
               )}
             </div>
           ) : (
-            <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+            <span className="text-[10px] font-semibold text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded-md">
               New
             </span>
           )}
         </div>
 
-        <h3 className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors">
+        <h3 className="text-sm font-bold text-stone-900 line-clamp-2 leading-snug group-hover:text-orange-700 transition-colors">
           {product.product_name}
         </h3>
 
         <div className="mt-auto pt-3 flex items-center justify-between gap-2">
           <div>
-            <p className="text-base sm:text-lg font-extrabold font-mono text-slate-900 leading-none">
+            <p className="text-base sm:text-lg font-extrabold font-mono text-stone-900 leading-none">
               {formatPrice(product.base_price)}
             </p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Free delivery available</p>
+            <p className="text-[10px] text-stone-400 mt-0.5">Free delivery available</p>
           </div>
 
           <button
@@ -331,7 +331,7 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart, onAsk
             disabled={addingCart}
             className={[
               'px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0',
-              'bg-slate-900 hover:bg-indigo-600 text-white shadow-2xs active:scale-95',
+              'bg-stone-900 hover:bg-orange-600 text-white shadow-2xs active:scale-95',
               'disabled:opacity-60 disabled:cursor-not-allowed',
             ].join(' ')}
           >
@@ -349,15 +349,15 @@ function ProductCard({ product, wishlisted, onWishlistToggle, onAddToCart, onAsk
 
 function ProductSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/70 flex flex-col overflow-hidden">
-      <div className="h-44 sm:h-52 bg-slate-100 animate-pulse" />
+    <div className="bg-white rounded-2xl border border-stone-200/80 flex flex-col overflow-hidden">
+      <div className="h-44 sm:h-52 bg-stone-100 animate-pulse" />
       <div className="flex flex-col flex-1 p-4 gap-2.5">
-        <div className="h-3 bg-slate-100 rounded-md w-1/3 animate-pulse" />
-        <div className="h-4 bg-slate-100 rounded-md w-full animate-pulse" />
-        <div className="h-4 bg-slate-100 rounded-md w-2/3 animate-pulse" />
+        <div className="h-3 bg-stone-100 rounded-md w-1/3 animate-pulse" />
+        <div className="h-4 bg-stone-100 rounded-md w-full animate-pulse" />
+        <div className="h-4 bg-stone-100 rounded-md w-2/3 animate-pulse" />
         <div className="mt-auto pt-3 flex items-center justify-between">
-          <div className="h-5 bg-slate-100 rounded-md w-1/3 animate-pulse" />
-          <div className="h-8 bg-slate-100 rounded-xl w-20 animate-pulse" />
+          <div className="h-5 bg-stone-100 rounded-md w-1/3 animate-pulse" />
+          <div className="h-8 bg-stone-100 rounded-xl w-20 animate-pulse" />
         </div>
       </div>
     </div>
@@ -396,7 +396,7 @@ export default function Home() {
   const [hasPrev, setHasPrev] = useState(false)
   const [pageSize, setPageSize] = useState(12)
 
-  // Register current page context for the AI Copilot
+  // Register current page context for the Shopping Guide
   useEffect(() => {
     setPageContext({
       page: 'home',
@@ -563,15 +563,15 @@ export default function Home() {
     searchTerm || categoryFilter || brandFilter || priceFilter || sortParam || dealsOnly
   )
 
-  let heading = 'Featured Products'
+  let heading = 'Featured Collection'
   if (searchTerm) heading = `Search results for "${searchTerm}"`
   else if (categoryFilter) heading = `${categoryFilter}`
-  else if (dealsOnly) heading = 'Value Deals & Under ₹2,500 Picks'
+  else if (dealsOnly) heading = 'Value Picks Under ₹2,500'
   else if (sortParam === 'rating') heading = 'Top Rated by Customers'
-  else if (sortParam === 'newest') heading = 'Latest Arrivals'
+  else if (sortParam === 'newest') heading = 'New Arrivals'
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col">
       <Header />
 
       {/* Hero Carousel on unfiltered page 1 */}
@@ -582,15 +582,15 @@ export default function Home() {
         {categories.length > 0 && !searchTerm && page === 1 && (
           <section aria-label="Shop by Category">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">
-                Browse Categories
+              <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                Browse Departments
               </h2>
               {categoryFilter && (
                 <button
                   onClick={() => navigate('/')}
-                  className="text-xs font-semibold text-indigo-600 hover:underline cursor-pointer"
+                  className="text-xs font-semibold text-orange-700 hover:underline cursor-pointer"
                 >
-                  Reset category ✕
+                  Reset department ✕
                 </button>
               )}
             </div>
@@ -600,12 +600,11 @@ export default function Home() {
                 className={[
                   'shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer',
                   !categoryFilter
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                    : 'bg-white text-slate-700 border-slate-200/90 hover:border-indigo-300 hover:text-indigo-600',
+                    ? 'bg-stone-900 text-white border-stone-900 shadow-2xs'
+                    : 'bg-white text-stone-700 border-stone-200/90 hover:border-stone-400 hover:text-stone-950',
                 ].join(' ')}
               >
-                <span>✨</span>
-                <span>All Categories</span>
+                <span>All Departments</span>
               </button>
               {categories.map((cat) => {
                 const isSelected = categoryFilter.toLowerCase() === cat.name.toLowerCase()
@@ -618,8 +617,8 @@ export default function Home() {
                     className={[
                       'shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-bold capitalize transition-all cursor-pointer',
                       isSelected
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                        : 'bg-white text-slate-700 border-slate-200/90 hover:border-indigo-300 hover:text-indigo-600',
+                        ? 'bg-orange-600 text-white border-orange-600 shadow-2xs'
+                        : 'bg-white text-stone-700 border-stone-200/90 hover:border-stone-400 hover:text-stone-950',
                     ].join(' ')}
                   >
                     <span className="text-base leading-none">{getCatIcon(cat.name)}</span>
@@ -631,24 +630,25 @@ export default function Home() {
           </section>
         )}
 
-        {/* ── AI Shopping Copilot Discovery Banner ──────────────────────── */}
+        {/* ── Chatram AI Copilot Bar ──────────────────────────── */}
         {page === 1 && !searchTerm && (
-          <section className="rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 shadow-md border border-indigo-500/20 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <section className="rounded-2xl bg-white text-stone-900 p-5 sm:p-6 shadow-2xs border border-stone-200/90 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex items-start sm:items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0">
-                <SparkleIcon className="w-6 h-6 text-amber-300" />
+              <div className="w-11 h-11 rounded-2xl bg-[#141413] text-stone-100 flex items-center justify-center shrink-0">
+                <SparkleIcon className="w-5 h-5 text-amber-400" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-extrabold text-white">
-                    Not sure what to pick? Ask your AI-MCP Shopping Copilot
+                  <h3 className="text-sm sm:text-base font-extrabold text-stone-900">
+                    Looking for something specific? Ask Chatram AI Copilot
                   </h3>
-                  <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
-                    Live Inventory
+                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-stone-100 text-stone-700 border border-stone-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    MCP-Powered
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-indigo-200/80 mt-0.5">
-                  Compare specifications, find gifts under your budget, or add items directly to your cart with natural language.
+                <p className="text-xs sm:text-sm text-stone-500 mt-0.5">
+                  Compare product specifications, filter by budget, or manage your cart directly.
                 </p>
               </div>
             </div>
@@ -656,21 +656,22 @@ export default function Home() {
             <div className="flex flex-wrap items-center gap-2 shrink-0 w-full lg:w-auto">
               <button
                 onClick={() => askAI('Find the highest rated products in the store')}
-                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-white transition-colors cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200/80 border border-stone-200/90 text-xs font-semibold text-stone-800 transition-colors cursor-pointer"
               >
                 ★ Best Rated Picks
               </button>
               <button
                 onClick={() => askAI('Show me the best products under ₹2000')}
-                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-white transition-colors cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200/80 border border-stone-200/90 text-xs font-semibold text-stone-800 transition-colors cursor-pointer"
               >
-                💰 Under ₹2,000
+                Under ₹2,000
               </button>
               <button
                 onClick={() => askAI('', { autoSend: false })}
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#141413] hover:bg-stone-800 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
               >
-                Open Copilot →
+                <SparkleIcon className="w-3.5 h-3.5 text-amber-400" />
+                <span>Ask AI Copilot →</span>
               </button>
             </div>
           </section>
@@ -678,41 +679,41 @@ export default function Home() {
 
         {/* ── Filter & Sort Header Bar ──────────────────────────────────── */}
         <section>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200/90 mb-6">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 capitalize tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900 capitalize tracking-tight">
                   {heading}
                 </h1>
                 {!loading && totalCount > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200/70 text-slate-700">
-                    { displayedProducts.length } shown
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-stone-200/80 text-stone-700">
+                    {displayedProducts.length} shown
                   </span>
                 )}
               </div>
               {hasActiveFilters && (
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   {searchTerm && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-stone-200/70 text-stone-800 border border-stone-300/70">
                       Search: "{searchTerm}"
-                      <button onClick={() => updateQueryParam('n', '')} className="ml-1 hover:text-indigo-950 cursor-pointer">✕</button>
+                      <button onClick={() => updateQueryParam('n', '')} className="ml-1 hover:text-stone-950 cursor-pointer">✕</button>
                     </span>
                   )}
                   {categoryFilter && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200/60 capitalize">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-50 text-orange-800 border border-orange-200/70 capitalize">
                       Category: {categoryFilter}
-                      <button onClick={() => updateQueryParam('ct', '')} className="ml-1 hover:text-indigo-950 cursor-pointer">✕</button>
+                      <button onClick={() => updateQueryParam('ct', '')} className="ml-1 hover:text-orange-950 cursor-pointer">✕</button>
                     </span>
                   )}
                   {dealsOnly && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                      Under ₹2,500 Deals
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/60">
+                      Under ₹2,500
                       <button onClick={() => updateQueryParam('deals', '')} className="ml-1 hover:text-emerald-950 cursor-pointer">✕</button>
                     </span>
                   )}
                   <Link
                     to="/"
-                    className="text-xs font-semibold text-slate-500 hover:text-indigo-600 underline underline-offset-2 ml-1"
+                    className="text-xs font-semibold text-stone-500 hover:text-stone-900 underline underline-offset-2 ml-1"
                   >
                     Clear all filters
                   </Link>
@@ -722,14 +723,14 @@ export default function Home() {
 
             {/* Sort & Quick Filter Controls */}
             <div className="flex items-center gap-2.5 self-start sm:self-auto">
-              <label htmlFor="sort-select" className="text-xs font-semibold text-slate-500 shrink-0">
+              <label htmlFor="sort-select" className="text-xs font-semibold text-stone-500 shrink-0">
                 Sort by:
               </label>
               <select
                 id="sort-select"
                 value={sortParam}
                 onChange={(e) => updateQueryParam('sort', e.target.value)}
-                className="px-3 py-2 rounded-xl bg-white border border-slate-200/90 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 shadow-2xs cursor-pointer"
+                className="px-3 py-2 rounded-xl bg-white border border-stone-200/90 text-xs font-semibold text-stone-800 outline-none focus:border-stone-900 shadow-2xs cursor-pointer"
               >
                 <option value="">Featured</option>
                 <option value="newest">Newest Arrivals</option>
@@ -773,18 +774,18 @@ export default function Home() {
               })
             ) : (
               !error && (
-                <div className="col-span-full py-16 px-4 text-center bg-white rounded-3xl border border-slate-200/80 shadow-2xs">
-                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3 text-2xl">
+                <div className="col-span-full py-16 px-4 text-center bg-white rounded-3xl border border-stone-200/90 shadow-2xs">
+                  <div className="w-14 h-14 rounded-2xl bg-stone-100 text-stone-700 flex items-center justify-center mx-auto mb-3 text-2xl border border-stone-200">
                     🔍
                   </div>
-                  <p className="font-bold text-lg text-slate-900">No matching products found</p>
-                  <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">
-                    Try adjusting your filters, searching a different keyword, or let our AI Copilot find alternatives for you.
+                  <p className="font-bold text-lg text-stone-900">No matching products found</p>
+                  <p className="text-sm text-stone-500 mt-1 max-w-md mx-auto">
+                    Try adjusting your filters, searching a different keyword, or ask Chatram AI Copilot for alternatives.
                   </p>
                   <div className="mt-5 flex items-center justify-center gap-3">
                     <Link
                       to="/"
-                      className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors"
+                      className="px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition-colors"
                     >
                       View All Products
                     </Link>
@@ -796,9 +797,9 @@ export default function Home() {
                             : 'Show me your most popular products'
                         )
                       }
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-stone-900 border border-stone-300 text-xs font-bold hover:bg-stone-100 transition-colors cursor-pointer"
                     >
-                      <SparkleIcon className="w-3.5 h-3.5 text-amber-300" />
+                      <SparkleIcon className="w-3.5 h-3.5 text-amber-500" />
                       <span>Ask AI Copilot</span>
                     </button>
                   </div>
@@ -828,7 +829,7 @@ export default function Home() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-slate-900 text-white text-xs font-semibold rounded-full shadow-xl border border-slate-700 flex items-center gap-2"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-[#141413] text-white text-xs font-semibold rounded-full shadow-xl border border-stone-700 flex items-center gap-2"
         >
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
           <span>{toast}</span>

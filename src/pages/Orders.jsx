@@ -2,9 +2,9 @@
  * Orders — /orders   (isBuyer only)
  *
  * Fetches GET /user/order/ and renders each order card with:
- *   • 4-step visual status progress tracker (Pending → Processing → Shipped → Delivered)
- *   • Real-time WebSocket OrderChatPanel drawer ("Chat with Seller")
- *   • "Ask AI about this order" shortcut
+ *   • 4-step visual status progress tracker (Confirmed → Processing → Shipped → Delivered)
+ *   • Real-time WebSocket OrderChatPanel drawer ("Chat with Seller") at z-[70]
+ *   • "Order Help" Concierge shortcut
  */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -21,42 +21,36 @@ const STATUS_CONFIG = {
     label: 'Pending',
     dot: 'bg-amber-400',
     badge: 'bg-amber-50 text-amber-800 border-amber-200',
-    icon: '🕐',
     stepIdx: 0,
   },
   processing: {
     label: 'Processing',
-    dot: 'bg-indigo-500',
-    badge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    icon: '⚙️',
+    dot: 'bg-orange-500',
+    badge: 'bg-orange-50 text-orange-800 border-orange-200',
     stepIdx: 1,
   },
   shipped: {
     label: 'Shipped',
-    dot: 'bg-violet-500',
-    badge: 'bg-violet-50 text-violet-700 border-violet-200',
-    icon: '🚚',
+    dot: 'bg-teal-600',
+    badge: 'bg-teal-50 text-teal-800 border-teal-200',
     stepIdx: 2,
   },
   delivered: {
     label: 'Delivered',
     dot: 'bg-emerald-500',
-    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    icon: '✅',
+    badge: 'bg-emerald-50 text-emerald-800 border-emerald-200',
     stepIdx: 3,
   },
   cancelled: {
     label: 'Cancelled',
     dot: 'bg-rose-500',
     badge: 'bg-rose-50 text-rose-700 border-rose-200',
-    icon: '✕',
     stepIdx: -1,
   },
   returned: {
     label: 'Returned',
-    dot: 'bg-orange-500',
-    badge: 'bg-orange-50 text-orange-700 border-orange-200',
-    icon: '↩',
+    dot: 'bg-stone-500',
+    badge: 'bg-stone-100 text-stone-700 border-stone-300',
     stepIdx: -1,
   },
 }
@@ -93,8 +87,8 @@ function addressOneLiner(addr) {
 function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status] ?? {
     label: status,
-    dot: 'bg-slate-400',
-    badge: 'bg-slate-100 text-slate-600 border-slate-300',
+    dot: 'bg-stone-400',
+    badge: 'bg-stone-100 text-stone-600 border-stone-300',
   }
   return (
     <span
@@ -114,9 +108,9 @@ function OrderProgressStepper({ status }) {
   return (
     <div className="py-3 mb-4">
       <div className="flex items-center justify-between relative">
-        <div className="absolute left-0 right-0 top-3 h-1 bg-slate-100 rounded-full -z-0" />
+        <div className="absolute left-0 right-0 top-3 h-1 bg-stone-200 rounded-full -z-0" />
         <div
-          className="absolute left-0 top-3 h-1 bg-indigo-600 rounded-full transition-all duration-500 -z-0"
+          className="absolute left-0 top-3 h-1 bg-stone-900 rounded-full transition-all duration-500 -z-0"
           style={{ width: `${(activeIdx / (TRACK_STEPS.length - 1)) * 100}%` }}
         />
 
@@ -128,8 +122,8 @@ function OrderProgressStepper({ status }) {
                 className={[
                   'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all',
                   reached
-                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-2xs'
-                    : 'bg-white border-slate-300 text-slate-400',
+                    ? 'bg-stone-900 border-stone-900 text-white shadow-2xs'
+                    : 'bg-white border-stone-300 text-stone-400',
                 ].join(' ')}
               >
                 {reached ? '✓' : idx + 1}
@@ -137,7 +131,7 @@ function OrderProgressStepper({ status }) {
               <span
                 className={[
                   'text-[11px] font-semibold',
-                  reached ? 'text-slate-900' : 'text-slate-400',
+                  reached ? 'text-stone-900' : 'text-stone-400',
                 ].join(' ')}
               >
                 {label}
@@ -152,17 +146,17 @@ function OrderProgressStepper({ status }) {
 
 function OrderSkeleton() {
   return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden animate-pulse">
-      <div className="bg-slate-50 border-b border-slate-200/80 px-5 py-4 flex justify-between">
+    <div className="bg-white border border-stone-200/90 rounded-2xl overflow-hidden animate-pulse">
+      <div className="bg-stone-50 border-b border-stone-200/80 px-5 py-4 flex justify-between">
         <div className="space-y-1.5">
-          <div className="h-3 bg-slate-200 rounded w-28" />
-          <div className="h-3 bg-slate-200 rounded w-20" />
+          <div className="h-3 bg-stone-200 rounded w-28" />
+          <div className="h-3 bg-stone-200 rounded w-20" />
         </div>
-        <div className="h-6 bg-slate-200 rounded-full w-20" />
+        <div className="h-6 bg-stone-200 rounded-full w-20" />
       </div>
       <div className="p-5 space-y-3">
-        <div className="h-12 bg-slate-100 rounded-xl" />
-        <div className="h-10 bg-slate-100 rounded-xl" />
+        <div className="h-12 bg-stone-100 rounded-xl" />
+        <div className="h-10 bg-stone-100 rounded-xl" />
       </div>
     </div>
   )
@@ -170,17 +164,17 @@ function OrderSkeleton() {
 
 function EmptyOrders() {
   return (
-    <div className="bg-white border border-slate-200/80 rounded-3xl px-6 py-20 text-center shadow-2xs">
-      <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 text-3xl border border-indigo-100">
+    <div className="bg-white border border-stone-200/90 rounded-3xl px-6 py-20 text-center shadow-2xs">
+      <div className="w-16 h-16 rounded-2xl bg-stone-100 text-stone-700 flex items-center justify-center mx-auto mb-4 text-3xl border border-stone-200">
         📦
       </div>
-      <h2 className="text-xl font-extrabold text-slate-900 mb-1.5">No orders placed yet</h2>
-      <p className="text-sm text-slate-500 mb-6 max-w-xs mx-auto">
+      <h2 className="text-xl font-extrabold text-stone-900 mb-1.5">No orders placed yet</h2>
+      <p className="text-sm text-stone-500 mb-6 max-w-xs mx-auto">
         Once you place an order on Chatram, you can track its real-time status and chat directly with sellers here.
       </p>
       <Link
         to="/"
-        className="inline-block px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-indigo-600 text-white transition-colors shadow-xs"
+        className="inline-block px-6 py-2.5 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white transition-colors shadow-xs"
       >
         Start Shopping →
       </Link>
@@ -201,44 +195,44 @@ function OrderCard({ order, index, currentUser, onAskAI }) {
   const showDiscount = order.discount_amount && parseFloat(order.discount_amount) > 0
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-2xs hover:border-slate-300 transition-colors">
+    <div className="bg-white border border-stone-200/90 rounded-2xl overflow-hidden shadow-2xs hover:border-stone-300 transition-colors">
       {/* Card Header */}
-      <div className="bg-slate-50/80 border-b border-slate-200/80 px-5 py-3.5">
+      <div className="bg-stone-50/90 border-b border-stone-200/80 px-5 py-3.5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-stone-500">
             <div>
-              <p className="uppercase tracking-wider font-bold text-slate-400 text-[10px]">
+              <p className="uppercase tracking-wider font-bold text-stone-400 text-[10px]">
                 Order Placed
               </p>
-              <p className="text-slate-800 font-semibold">
+              <p className="text-stone-800 font-semibold">
                 {formatDate(order.order_date)}
                 {order.order_date && (
-                  <span className="text-slate-400 ml-1">{formatTime(order.order_date)}</span>
+                  <span className="text-stone-400 ml-1">{formatTime(order.order_date)}</span>
                 )}
               </p>
             </div>
             <div>
-              <p className="uppercase tracking-wider font-bold text-slate-400 text-[10px]">Total</p>
-              <p className="text-slate-900 font-mono font-bold">{formatPrice(order.total_amount)}</p>
+              <p className="uppercase tracking-wider font-bold text-stone-400 text-[10px]">Total</p>
+              <p className="text-stone-900 font-mono font-bold">{formatPrice(order.total_amount)}</p>
             </div>
             <div>
-              <p className="uppercase tracking-wider font-bold text-slate-400 text-[10px]">Items</p>
-              <p className="text-slate-800 font-semibold">
+              <p className="uppercase tracking-wider font-bold text-stone-400 text-[10px]">Items</p>
+              <p className="text-stone-800 font-semibold">
                 {totalQty} {totalQty === 1 ? 'item' : 'items'}
               </p>
             </div>
             <div className="hidden sm:block">
-              <p className="uppercase tracking-wider font-bold text-slate-400 text-[10px]">
+              <p className="uppercase tracking-wider font-bold text-stone-400 text-[10px]">
                 Deliver To
               </p>
-              <p className="text-slate-800 font-semibold truncate max-w-[180px]">
+              <p className="text-stone-800 font-semibold truncate max-w-[180px]">
                 {shipAddr?.user ?? '—'}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono font-bold text-slate-500">#{orderNum}</span>
+            <span className="text-xs font-mono font-bold text-stone-500">#{orderNum}</span>
             <StatusBadge status={status} />
           </div>
         </div>
@@ -253,10 +247,10 @@ function OrderCard({ order, index, currentUser, onAskAI }) {
           {items.map((item, i) => (
             <div
               key={i}
-              className="flex items-center gap-3.5 p-2.5 rounded-xl bg-slate-50/60 border border-slate-100"
+              className="flex items-center gap-3.5 p-2.5 rounded-xl bg-stone-50/70 border border-stone-200/60"
             >
-              <div className="w-11 h-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center shrink-0">
-                <span className="text-base font-extrabold text-slate-400 select-none">
+              <div className="w-11 h-11 rounded-xl border border-stone-200 bg-white flex items-center justify-center shrink-0">
+                <span className="text-base font-extrabold text-stone-400 select-none">
                   {(item.product_name ?? '?')[0].toUpperCase()}
                 </span>
               </div>
@@ -264,21 +258,21 @@ function OrderCard({ order, index, currentUser, onAskAI }) {
               <div className="flex-1 min-w-0">
                 <Link
                   to={`/product/${item.product}`}
-                  className="text-sm font-bold text-slate-900 hover:text-indigo-600 line-clamp-1 transition-colors"
+                  className="text-sm font-bold text-stone-900 hover:text-orange-700 line-clamp-1 transition-colors"
                 >
                   {item.product_name}
                 </Link>
                 {item.product_variant && (
-                  <p className="text-xs text-slate-400">Variant #{item.product_variant}</p>
+                  <p className="text-xs text-stone-400">Variant #{item.product_variant}</p>
                 )}
               </div>
 
               <div className="flex flex-col items-end gap-1 shrink-0 whitespace-nowrap">
-                <span className="text-xs text-slate-500">
-                  Qty: <strong className="text-slate-800">{item.quantity}</strong>
+                <span className="text-xs text-stone-500">
+                  Qty: <strong className="text-stone-800">{item.quantity}</strong>
                 </span>
                 {item.status && item.status !== 'pending' && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 capitalize">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-200/80 text-stone-800 capitalize">
                     {item.status}
                   </span>
                 )}
@@ -290,72 +284,72 @@ function OrderCard({ order, index, currentUser, onAskAI }) {
         {/* Expand Details Toggle */}
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 transition-colors cursor-pointer"
+          className="text-xs font-bold text-stone-700 hover:text-stone-950 flex items-center gap-1 transition-colors cursor-pointer"
         >
           {expanded ? 'Hide price & address breakdown ▲' : 'View price & address breakdown ▼'}
         </button>
 
         {expanded && (
-          <div className="border-t border-slate-100 mt-4 pt-4 space-y-4">
-            <div className="bg-slate-50 rounded-2xl px-4 py-3.5 space-y-1.5 text-xs sm:text-sm">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+          <div className="border-t border-stone-100 mt-4 pt-4 space-y-4">
+            <div className="bg-stone-50 rounded-2xl px-4 py-3.5 space-y-1.5 text-xs sm:text-sm">
+              <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                 Invoice Breakdown
               </p>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex justify-between text-stone-600">
                 <span>Subtotal</span>
                 <span className="font-mono">{formatPrice(order.subtotal)}</span>
               </div>
               {showDiscount && (
-                <div className="flex justify-between text-emerald-600 font-semibold">
+                <div className="flex justify-between text-emerald-700 font-semibold">
                   <span>Discount</span>
                   <span className="font-mono">− {formatPrice(order.discount_amount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-slate-600">
+              <div className="flex justify-between text-stone-600">
                 <span>Shipping</span>
-                <span className="text-emerald-600 font-bold">
+                <span className="text-emerald-700 font-bold">
                   {parseFloat(order.shipping_cost ?? 0) === 0
                     ? 'FREE'
                     : formatPrice(order.shipping_cost)}
                 </span>
               </div>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex justify-between text-stone-600">
                 <span>GST (18%)</span>
                 <span className="font-mono">{formatPrice(order.tax_amount)}</span>
               </div>
-              <div className="flex justify-between font-extrabold text-slate-900 border-t border-slate-200 pt-2 mt-1 text-base">
+              <div className="flex justify-between font-extrabold text-stone-900 border-t border-stone-200 pt-2 mt-1 text-base">
                 <span>Order Total</span>
-                <span className="font-mono text-indigo-600">{formatPrice(order.total_amount)}</span>
+                <span className="font-mono text-stone-950">{formatPrice(order.total_amount)}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="border border-slate-200/80 rounded-2xl p-3.5 bg-white">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+              <div className="border border-stone-200/80 rounded-2xl p-3.5 bg-white">
+                <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">
                   Shipping Address
                 </p>
                 {shipAddr ? (
                   <>
-                    <p className="text-xs font-bold text-slate-800 capitalize mb-0.5">
+                    <p className="text-xs font-bold text-stone-800 capitalize mb-0.5">
                       {shipAddr.user}
                     </p>
-                    <p className="text-xs text-slate-500 leading-relaxed">
+                    <p className="text-xs text-stone-500 leading-relaxed">
                       {addressOneLiner(shipAddr)}
                     </p>
                   </>
                 ) : (
-                  <p className="text-xs text-slate-400">Address not available</p>
+                  <p className="text-xs text-stone-400">Address not available</p>
                 )}
               </div>
               {order.billing_address && (
-                <div className="border border-slate-200/80 rounded-2xl p-3.5 bg-white">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                <div className="border border-stone-200/80 rounded-2xl p-3.5 bg-white">
+                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">
                     Billing Address
                   </p>
-                  <p className="text-xs font-bold text-slate-800 capitalize mb-0.5">
+                  <p className="text-xs font-bold text-stone-800 capitalize mb-0.5">
                     {order.billing_address.user}
                   </p>
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                  <p className="text-xs text-stone-500 leading-relaxed">
                     {addressOneLiner(order.billing_address)}
                   </p>
                 </div>
@@ -365,25 +359,28 @@ function OrderCard({ order, index, currentUser, onAskAI }) {
         )}
       </div>
 
-      {/* Slide-in Real-time Order Chat Drawer */}
+      {/* Slide-in Real-time Order Chat Drawer (z-[70] + auto-suppresses AI Copilot) */}
       {chatOpen && orderId && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-xs"
+            className="fixed inset-0 z-[65] bg-stone-950/45 backdrop-blur-xs"
             onClick={() => setChatOpen(false)}
           />
-          <div className="fixed top-0 right-0 h-full z-50 w-full max-w-[380px] flex flex-col bg-white shadow-2xl">
-            <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200 bg-slate-900 text-white shrink-0">
-              <span className="text-sm font-bold">💬 Seller Chat · Order #{orderNum}</span>
+          <div className="fixed top-0 right-0 h-full z-[70] w-full max-w-[400px] flex flex-col bg-white shadow-2xl">
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-stone-800 bg-[#141413] text-white shrink-0">
+              <span className="text-sm font-bold flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>Seller Chat · Order #{orderNum}</span>
+              </span>
               <button
                 onClick={() => setChatOpen(false)}
-                className="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg hover:bg-white/10 text-stone-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                 aria-label="Close chat"
               >
                 ✕
               </button>
             </div>
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 p-2 bg-[#f8f7f4]">
               <OrderChatPanel
                 orderId={orderId}
                 currentUser={currentUser}
@@ -395,22 +392,22 @@ function OrderCard({ order, index, currentUser, onAskAI }) {
       )}
 
       {/* Card Footer */}
-      <div className="bg-slate-50/80 border-t border-slate-200/80 px-5 py-3 flex flex-wrap gap-3 items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="bg-stone-50/90 border-t border-stone-200/80 px-5 py-3 flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setChatOpen((v) => !v)}
             disabled={!orderId}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-indigo-300 text-xs font-bold text-slate-700 hover:text-indigo-600 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-xs font-semibold text-white shadow-2xs transition-all cursor-pointer disabled:opacity-40"
           >
-            <span>💬 Chat with Seller</span>
+            <span>💬 Message Seller</span>
           </button>
 
           <button
             onClick={() => onAskAI(order)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200/80 text-xs font-bold transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-stone-100 text-stone-700 hover:text-stone-950 border border-stone-300/90 text-xs font-semibold transition-all cursor-pointer"
           >
-            <SparkleIcon className="w-3.5 h-3.5" />
-            <span>Ask AI Copilot</span>
+            <SparkleIcon className="w-3.5 h-3.5 text-teal-700" />
+            <span>Order Help</span>
           </button>
         </div>
 
@@ -418,7 +415,7 @@ function OrderCard({ order, index, currentUser, onAskAI }) {
           {items[0]?.product && (
             <Link
               to={`/product/${items[0].product}`}
-              className="text-xs font-bold text-indigo-600 hover:underline"
+              className="text-xs font-bold text-stone-800 hover:text-orange-700 hover:underline"
             >
               {status === 'delivered' ? '★ Write a Review' : 'View Product →'}
             </Link>
@@ -490,22 +487,22 @@ export default function Orders() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col">
       <Header />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-8">
         {showBanner && (
           <div className="mb-6 flex items-start gap-3 px-5 py-4 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-2xs">
-            <span className="text-2xl shrink-0">🎉</span>
+            <span className="text-2xl shrink-0">✓</span>
             <div className="flex-1">
-              <p className="font-bold text-emerald-900 text-sm">Order placed successfully!</p>
-              <p className="text-xs text-emerald-700 mt-0.5">
+              <p className="font-bold text-emerald-950 text-sm">Order placed successfully!</p>
+              <p className="text-xs text-emerald-800 mt-0.5">
                 Thank you for shopping with Chatram. Track your delivery progress below.
               </p>
             </div>
             <button
               onClick={() => setShowBanner(false)}
-              className="text-emerald-600 hover:text-emerald-900 text-lg leading-none shrink-0 cursor-pointer"
+              className="text-emerald-700 hover:text-emerald-950 text-lg leading-none shrink-0 cursor-pointer"
               aria-label="Dismiss"
             >
               ×
@@ -515,13 +512,13 @@ export default function Orders() {
 
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Your Orders</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Track shipments, view invoices, or chat live with sellers
+            <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight">Your Orders</h1>
+            <p className="text-xs text-stone-500 mt-0.5">
+              Track shipments, view invoices, or message sellers directly
             </p>
           </div>
           {!loading && totalCount > 0 && (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-stone-200/80 text-stone-800">
               {totalCount} {totalCount === 1 ? 'order' : 'orders'}
             </span>
           )}
@@ -573,13 +570,13 @@ export default function Orders() {
                   className={[
                     'px-4 py-2 rounded-xl text-xs font-bold border transition-all',
                     prevUrl
-                      ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer'
-                      : 'border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed',
+                      ? 'border-stone-300 bg-white hover:bg-stone-50 text-stone-700 cursor-pointer'
+                      : 'border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed',
                   ].join(' ')}
                 >
                   ← Previous
                 </button>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-stone-500">
                   Showing {orders.length} of {totalCount} orders
                 </p>
                 <button
@@ -588,8 +585,8 @@ export default function Orders() {
                   className={[
                     'px-4 py-2 rounded-xl text-xs font-bold border transition-all',
                     nextUrl
-                      ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer'
-                      : 'border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed',
+                      ? 'border-stone-300 bg-white hover:bg-stone-50 text-stone-700 cursor-pointer'
+                      : 'border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed',
                   ].join(' ')}
                 >
                   Next →

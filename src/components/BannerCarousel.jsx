@@ -27,7 +27,7 @@ const slides = [
       subtext: 'Comfort meets modern style — explore new lifestyle picks',
       cta: 'Shop Lifestyle',
       aiPrompt: 'Show me the best fashion and lifestyle products',
-      textColor: 'text-slate-900',
+      textColor: 'text-stone-900',
     },
   },
   {
@@ -63,7 +63,7 @@ export default function BannerCarousel() {
 
   return (
     <section className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-      <div className="relative w-full aspect-[16/8] sm:aspect-[16/6] md:aspect-[3.2/1] lg:h-[420px] xl:h-[460px] rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 shadow-md border border-slate-200/80 group select-none">
+      <div className="relative w-full aspect-[16/8] sm:aspect-[16/6] md:aspect-[3.2/1] lg:h-[420px] xl:h-[460px] rounded-2xl sm:rounded-3xl overflow-hidden bg-stone-900 shadow-md border border-stone-200/90 group select-none">
         {/* Slides Track */}
         <div
           className="flex h-full w-full transition-transform duration-500 ease-out"
@@ -92,7 +92,7 @@ export default function BannerCarousel() {
                           'inline-block px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3',
                           slide.overlay.textColor === 'text-white'
                             ? 'bg-white/20 text-white backdrop-blur-xs border border-white/30'
-                            : 'bg-slate-900/10 text-slate-900 border border-slate-900/15',
+                            : 'bg-stone-900/10 text-stone-900 border border-stone-900/15',
                         ].join(' ')}
                       >
                         {slide.overlay.badge}
@@ -117,8 +117,8 @@ export default function BannerCarousel() {
                         className={[
                           'px-4 py-2 sm:px-6 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95 cursor-pointer',
                           slide.overlay.textColor === 'text-white'
-                            ? 'bg-white text-slate-900 hover:bg-slate-100'
-                            : 'bg-slate-900 text-white hover:bg-slate-800',
+                            ? 'bg-white text-stone-900 hover:bg-stone-100'
+                            : 'bg-stone-900 text-white hover:bg-stone-800',
                         ].join(' ')}
                       >
                         {slide.overlay.cta} →
@@ -129,10 +129,10 @@ export default function BannerCarousel() {
                             e.stopPropagation()
                             askAI(slide.overlay.aiPrompt)
                           }}
-                          className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600/95 hover:bg-indigo-600 text-white shadow-md backdrop-blur-xs transition-all cursor-pointer"
+                          className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-[#141413]/90 hover:bg-[#141413] text-stone-100 border border-stone-700 shadow-md backdrop-blur-xs transition-all cursor-pointer"
                         >
-                          <SparkleIcon className="w-4 h-4 text-amber-300" />
-                          <span>Ask AI</span>
+                          <SparkleIcon className="w-4 h-4 text-amber-400" />
+                          <span>Ask AI Copilot</span>
                         </button>
                       )}
                     </div>
@@ -149,7 +149,7 @@ export default function BannerCarousel() {
             e.stopPropagation()
             prevSlide()
           }}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-900 backdrop-blur-xs rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-10 cursor-pointer"
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/85 hover:bg-white text-stone-900 backdrop-blur-xs rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-10 cursor-pointer"
           aria-label="Previous slide"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
@@ -162,7 +162,7 @@ export default function BannerCarousel() {
             e.stopPropagation()
             nextSlide()
           }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-900 backdrop-blur-xs rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-10 cursor-pointer"
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/85 hover:bg-white text-stone-900 backdrop-blur-xs rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-10 cursor-pointer"
           aria-label="Next slide"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
@@ -171,7 +171,7 @@ export default function BannerCarousel() {
         </button>
 
         {/* Slide Indicators */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10 bg-slate-950/35 backdrop-blur-xs px-3 py-1.5 rounded-full">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10 bg-stone-950/40 backdrop-blur-xs px-3 py-1.5 rounded-full">
           {slides.map((_, index) => (
             <button
               key={index}

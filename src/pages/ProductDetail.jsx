@@ -143,7 +143,7 @@ function ShareButton({ productName, showToast }) {
     <button
       type="button"
       onClick={handleShare}
-      className="w-9 h-9 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all border border-slate-200/90 shadow-2xs flex items-center justify-center bg-white shrink-0 cursor-pointer"
+      className="w-9 h-9 text-stone-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all border border-stone-200/90 shadow-2xs flex items-center justify-center bg-white shrink-0 cursor-pointer"
       title="Share product"
       aria-label="Share product"
     >
@@ -286,7 +286,7 @@ function ReviewCard({ review, currentUser, onDelete, onUpdate }) {
           {isOwner && onUpdate && !isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="text-indigo-600 hover:bg-indigo-50 px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+              className="text-orange-600 hover:bg-orange-50 px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
               title="Edit Review"
             >
               Edit
@@ -316,7 +316,7 @@ function ReviewCard({ review, currentUser, onDelete, onUpdate }) {
           <textarea
             value={editText}
             onChange={(e) => setEditText(e.target.value)}
-            className="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-3 focus:ring-indigo-500/15 focus:border-indigo-500 outline-none"
+            className="w-full border border-stone-300 rounded-xl p-3 text-sm focus:ring-3 focus:ring-stone-900/15 focus:border-stone-900 outline-none"
             rows="3"
           />
           <div className="flex gap-2 justify-end">
@@ -326,14 +326,14 @@ function ReviewCard({ review, currentUser, onDelete, onUpdate }) {
                 setEditText(review?.review_text || '')
                 setEditRating(review?.rating || 0)
               }}
-              className="px-3.5 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 text-xs text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl font-semibold transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handleUpdateSubmit}
               disabled={isUpdating}
-              className="px-4 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+              className="px-4 py-1.5 text-xs bg-stone-900 hover:bg-orange-600 text-white rounded-xl font-semibold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isUpdating ? 'Saving…' : 'Save Changes'}
             </button>
@@ -529,7 +529,7 @@ function WriteReviewForm({ productId, onSuccess }) {
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+        <label className="block text-xs font-semibold text-stone-600 mb-1.5">
           Your review (optional)
         </label>
         <textarea
@@ -537,7 +537,7 @@ function WriteReviewForm({ productId, onSuccess }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="What did you like or dislike about this product?"
-          className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15 resize-none"
+          className="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl outline-none focus:border-stone-900 focus:ring-3 focus:ring-stone-900/15 resize-none"
         />
       </div>
 
@@ -612,7 +612,7 @@ function WriteReviewForm({ productId, onSuccess }) {
       <button
         type="submit"
         disabled={loading}
-        className="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-indigo-600 text-white disabled:opacity-60 transition-colors cursor-pointer"
+        className="px-5 py-2.5 rounded-xl text-xs font-bold bg-stone-900 hover:bg-orange-600 text-white disabled:opacity-60 transition-colors cursor-pointer"
       >
         {loading ? 'Submitting…' : 'Publish Review'}
       </button>
@@ -626,22 +626,22 @@ function WriteReviewForm({ productId, onSuccess }) {
 
 function QuestionCard({ qa }) {
   return (
-    <div className="border border-slate-200/80 rounded-2xl p-4 bg-white space-y-2 shadow-2xs">
+    <div className="border border-stone-200/80 rounded-2xl p-4 bg-white space-y-2 shadow-2xs">
       <div className="flex items-start gap-2.5">
-        <span className="shrink-0 mt-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200/60 rounded-md px-2 py-0.5">
+        <span className="shrink-0 mt-0.5 text-[10px] font-bold uppercase tracking-wider text-orange-700 bg-orange-50 border border-orange-200/60 rounded-md px-2 py-0.5">
           Q
         </span>
-        <p className="text-sm font-semibold text-slate-900">{qa.question}</p>
+        <p className="text-sm font-semibold text-stone-900">{qa.question}</p>
       </div>
       {qa.answer ? (
         <div className="flex items-start gap-2.5 pl-0.5">
           <span className="shrink-0 mt-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-md px-2 py-0.5">
             A
           </span>
-          <p className="text-sm text-slate-700 leading-relaxed">{qa.answer}</p>
+          <p className="text-sm text-stone-700 leading-relaxed">{qa.answer}</p>
         </div>
       ) : (
-        <p className="text-xs text-slate-400 pl-8 italic">Awaiting seller or community response</p>
+        <p className="text-xs text-stone-400 pl-8 italic">Awaiting seller or community response</p>
       )}
     </div>
   )
@@ -696,14 +696,14 @@ function AskQuestionForm({ productId, onSuccess }) {
         placeholder="Have a question about specifications, warranty, or compatibility?"
         className={[
           'flex-1 px-4 py-2.5 text-sm bg-white border rounded-xl outline-none transition-all',
-          'focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15',
-          error ? 'border-rose-500' : 'border-slate-300',
+          'focus:border-stone-900 focus:ring-3 focus:ring-stone-900/15',
+          error ? 'border-rose-500' : 'border-stone-300',
         ].join(' ')}
       />
       <button
         type="submit"
         disabled={loading}
-        className="shrink-0 px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-indigo-600 text-white disabled:opacity-60 transition-colors cursor-pointer"
+        className="shrink-0 px-5 py-2.5 rounded-xl text-xs font-bold bg-stone-900 hover:bg-orange-600 text-white disabled:opacity-60 transition-colors cursor-pointer"
       >
         {loading ? 'Posting…' : 'Post Question'}
       </button>
@@ -905,28 +905,28 @@ export default function ProductDetail() {
   }, [primaryImage])
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col">
       <Header />
 
       <main className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
         {/* Breadcrumb */}
-        <nav className="text-xs font-medium text-slate-500 mb-5 flex items-center gap-1.5 flex-wrap">
-          <Link to="/" className="hover:text-indigo-600 transition-colors">
+        <nav className="text-xs font-medium text-stone-500 mb-5 flex items-center gap-1.5 flex-wrap">
+          <Link to="/" className="hover:text-orange-600 transition-colors">
             Storefront
           </Link>
-          <span className="text-slate-300">/</span>
+          <span className="text-stone-300">/</span>
           {product?.category_name && (
             <>
               <Link
                 to={`/?ct=${encodeURIComponent(product.category_name)}`}
-                className="hover:text-indigo-600 capitalize transition-colors"
+                className="hover:text-orange-600 capitalize transition-colors"
               >
                 {product.category_name}
               </Link>
-              <span className="text-slate-300">/</span>
+              <span className="text-stone-300">/</span>
             </>
           )}
-          <span className="text-slate-800 font-semibold truncate max-w-[280px]">
+          <span className="text-stone-800 font-semibold truncate max-w-[280px]">
             {product?.product_name}
           </span>
         </nav>
@@ -934,12 +934,12 @@ export default function ProductDetail() {
         {loading && <Skeleton />}
 
         {!loading && error && (
-          <div className="py-20 text-center bg-white rounded-3xl border border-slate-200/80 shadow-2xs">
+          <div className="py-20 text-center bg-white rounded-3xl border border-stone-200/80 shadow-2xs">
             <p className="text-4xl mb-3">😕</p>
-            <p className="text-lg font-bold text-slate-800 mb-2">{error}</p>
+            <p className="text-lg font-bold text-stone-800 mb-2">{error}</p>
             <Link
               to="/"
-              className="inline-block mt-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-indigo-600 transition-colors"
+              className="inline-block mt-2 px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-orange-600 transition-colors"
             >
               ← Back to Storefront
             </Link>
@@ -1011,8 +1011,8 @@ export default function ProductDetail() {
                           className={[
                             'shrink-0 w-16 h-16 rounded-xl border-2 overflow-hidden focus:outline-none transition-all cursor-pointer bg-white p-1',
                             isSelected
-                              ? 'border-indigo-600 shadow-xs ring-2 ring-indigo-500/20'
-                              : 'border-slate-200 hover:border-indigo-300',
+                              ? 'border-stone-900 shadow-xs ring-2 ring-stone-900/15'
+                              : 'border-stone-200 hover:border-stone-400',
                           ].join(' ')}
                           aria-label={isVideo ? 'Play video' : `View image ${i + 1}`}
                         >
@@ -1062,14 +1062,14 @@ export default function ProductDetail() {
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     {product.brand_name && (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 text-orange-700 border border-orange-200/70">
                         {product.brand_name}
                       </span>
                     )}
                     {product.category_name && (
                       <Link
                         to={`/?ct=${encodeURIComponent(product.category_name)}`}
-                        className="px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                        className="px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors"
                       >
                         {product.category_name}
                       </Link>
@@ -1140,8 +1140,8 @@ export default function ProductDetail() {
                 {/* Variant Selectors */}
                 {colors.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                      Color: <span className="text-slate-900">{selectedColor ?? 'Default'}</span>
+                    <p className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">
+                      Color: <span className="text-stone-900">{selectedColor ?? 'Default'}</span>
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {colors.map((color) => (
@@ -1151,8 +1151,8 @@ export default function ProductDetail() {
                           className={[
                             'px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer',
                             selectedColor === color
-                              ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-500/20'
-                              : 'border-slate-200 bg-white text-slate-700 hover:border-indigo-300',
+                              ? 'border-stone-900 bg-stone-900 text-white shadow-2xs'
+                              : 'border-stone-200 bg-white text-stone-700 hover:border-stone-400',
                           ].join(' ')}
                         >
                           {color}
@@ -1164,8 +1164,8 @@ export default function ProductDetail() {
 
                 {sizes.length > 0 && (
                   <div className="mb-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                      Size: <span className="text-slate-900">{selectedSize ?? 'Standard'}</span>
+                    <p className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">
+                      Size: <span className="text-stone-900">{selectedSize ?? 'Standard'}</span>
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {sizes.map((size) => (
@@ -1175,8 +1175,8 @@ export default function ProductDetail() {
                           className={[
                             'px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer',
                             selectedSize === size
-                              ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-500/20'
-                              : 'border-slate-200 bg-white text-slate-700 hover:border-indigo-300',
+                              ? 'border-stone-900 bg-stone-900 text-white shadow-2xs'
+                              : 'border-stone-200 bg-white text-stone-700 hover:border-stone-400',
                           ].join(' ')}
                         >
                           {size}
@@ -1189,10 +1189,10 @@ export default function ProductDetail() {
                 {/* Product Description */}
                 {product.description && (
                   <div className="mb-6">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1.5">
                       About this item
                     </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                    <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-line">
                       {product.description}
                     </p>
                   </div>
@@ -1205,11 +1205,11 @@ export default function ProductDetail() {
                     disabled={cartLoading || displayStock === 0}
                     className={[
                       'flex-1 py-3.5 px-6 rounded-2xl text-sm font-bold transition-all cursor-pointer shadow-sm',
-                      'bg-indigo-600 hover:bg-indigo-500 text-white active:scale-[0.99]',
+                      'bg-stone-900 hover:bg-orange-600 text-white active:scale-[0.99]',
                       'disabled:opacity-50 disabled:cursor-not-allowed',
                     ].join(' ')}
                   >
-                    {cartLoading ? 'Adding to Cart…' : displayStock === 0 ? 'Out of Stock' : '🛒 Add to Cart'}
+                    {cartLoading ? 'Adding to Cart…' : displayStock === 0 ? 'Out of Stock' : 'Add to Cart'}
                   </button>
 
                   <button
@@ -1219,7 +1219,7 @@ export default function ProductDetail() {
                       'py-3.5 px-6 rounded-2xl text-sm font-bold transition-all border cursor-pointer',
                       wishlisted
                         ? 'border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100'
-                        : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50 hover:border-slate-300',
+                        : 'border-stone-200 bg-white text-stone-800 hover:bg-stone-50 hover:border-stone-300',
                       'disabled:opacity-50 disabled:cursor-not-allowed',
                     ].join(' ')}
                   >
@@ -1227,19 +1227,20 @@ export default function ProductDetail() {
                   </button>
                 </div>
 
-                {/* ── Embedded "Ask AI Copilot About This Product" Card ─── */}
-                <div className="rounded-2xl bg-gradient-to-br from-indigo-50/90 via-violet-50/60 to-white border border-indigo-200/80 p-4 sm:p-5 shadow-2xs">
+                {/* ── Embedded "Chatram AI Copilot" Card ─── */}
+                <div className="rounded-2xl bg-[#f8f7f4] border border-stone-200/90 p-4 sm:p-5">
                   <div className="flex items-center justify-between gap-2 mb-2.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
-                        <SparkleIcon className="w-4 h-4 text-amber-300" />
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-stone-900 text-white flex items-center justify-center shrink-0">
+                        <SparkleIcon className="w-4 h-4 text-amber-400" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900">
+                        <p className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
                           Ask Chatram AI Copilot about this product
+                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
                         </p>
-                        <p className="text-[11px] text-slate-500">
-                          Instant review synthesis, comparisons &amp; cart actions via MCP
+                        <p className="text-[11px] text-stone-500">
+                          Instant review synthesis, spec comparisons &amp; quick cart actions via MCP
                         </p>
                       </div>
                     </div>
@@ -1252,9 +1253,9 @@ export default function ProductDetail() {
                           `Summarize the key pros, cons, and customer reviews for ${product.product_name}.`
                         )
                       }
-                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-stone-900 text-stone-700 hover:text-white border border-stone-200/90 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                     >
-                      ✨ Summarize reviews &amp; specs
+                      Summarize reviews &amp; specs
                     </button>
                     <button
                       onClick={() =>
@@ -1262,9 +1263,9 @@ export default function ProductDetail() {
                           `Compare ${product.product_name} (${formatPrice(displayPrice)}) with other alternatives in the store.`
                         )
                       }
-                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-stone-900 text-stone-700 hover:text-white border border-stone-200/90 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                     >
-                      ⚖️ Compare alternatives
+                      Compare alternatives
                     </button>
                     <button
                       onClick={() =>
@@ -1272,9 +1273,9 @@ export default function ProductDetail() {
                           `Is ${product.product_name} worth buying at ${formatPrice(displayPrice)}?`
                         )
                       }
-                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-stone-900 text-stone-700 hover:text-white border border-stone-200/90 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                     >
-                      💡 Worth the price?
+                      Worth the price?
                     </button>
                   </div>
                 </div>
@@ -1334,10 +1335,10 @@ export default function ProductDetail() {
                   )}
 
                   {!isAuthenticated && (
-                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600">
+                    <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 text-xs text-stone-600">
                       <Link
                         to={`/login?next=/product/${id}`}
-                        className="text-indigo-600 hover:underline font-bold"
+                        className="text-orange-600 hover:underline font-bold"
                       >
                         Sign in
                       </Link>{' '}
@@ -1361,7 +1362,7 @@ export default function ProductDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-8 rounded-2xl border border-dashed border-slate-200 text-center text-slate-500 text-sm">
+                    <div className="p-8 rounded-2xl border border-dashed border-stone-200 text-center text-stone-500 text-sm">
                       No customer reviews yet. Be the first to review this product!
                     </div>
                   )}
@@ -1378,10 +1379,10 @@ export default function ProductDetail() {
                 {isBuyer && <AskQuestionForm productId={id} onSuccess={fetchProduct} />}
 
                 {!isAuthenticated && (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-stone-500">
                     <Link
                       to={`/login?next=/product/${id}`}
-                      className="text-indigo-600 hover:underline font-bold"
+                      className="text-orange-600 hover:underline font-bold"
                     >
                       Sign in
                     </Link>{' '}
@@ -1396,15 +1397,15 @@ export default function ProductDetail() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-stone-500">
                     No questions asked yet. Need an instant answer? Click{' '}
                     <button
                       onClick={() =>
                         askAI(`Tell me all the details about ${product.product_name}`)
                       }
-                      className="text-indigo-600 font-semibold hover:underline cursor-pointer"
+                      className="text-orange-600 font-semibold hover:underline cursor-pointer"
                     >
-                      Ask AI Copilot
+                      Ask Chatram AI Copilot
                     </button>{' '}
                     above!
                   </p>

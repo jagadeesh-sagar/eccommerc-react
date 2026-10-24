@@ -2,7 +2,7 @@
  * Wishlist — /wishlist   (isBuyer only)
  *
  * Fetches GET /user/whishlist/ and renders a modern product grid with real
- * product images, ratings, Move to Cart, Remove, and AI comparison triggers.
+ * product images, ratings, Move to Cart, Remove, and Shopping Guide comparison triggers.
  */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -55,7 +55,7 @@ function getPrimaryImageUrl(product) {
 }
 
 function pseudoColor(str = '') {
-  const palette = ['#eef2ff', '#fae8ff', '#ecfdf5', '#fffbeb', '#f5f3ff', '#fff1f2', '#ecfeff']
+  const palette = ['#f5f5f4', '#fef3c7', '#ecfdf5', '#ffedd5', '#f3f4f6', '#fae8ff', '#e0f2fe']
   let h = 0
   for (const c of str) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff
   return palette[Math.abs(h) % palette.length]
@@ -71,13 +71,13 @@ function EmptyWishlist() {
       <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center mb-4 text-3xl shadow-2xs border border-rose-100">
         ♥
       </div>
-      <h2 className="text-xl font-extrabold text-slate-900 mb-1.5">Your Wishlist is empty</h2>
-      <p className="text-sm text-slate-500 mb-6 max-w-sm">
+      <h2 className="text-xl font-extrabold text-stone-900 mb-1.5">Your Wishlist is empty</h2>
+      <p className="text-sm text-stone-500 mb-6 max-w-sm">
         Save products you love while browsing and compare them anytime with Chatram AI Copilot.
       </p>
       <Link
         to="/"
-        className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-indigo-600 text-white transition-colors shadow-xs"
+        className="px-6 py-2.5 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white transition-colors shadow-xs"
       >
         Explore Storefront →
       </Link>
@@ -93,13 +93,13 @@ function WishlistSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden animate-pulse">
-          <div className="h-48 bg-slate-100" />
+        <div key={i} className="bg-white rounded-2xl border border-stone-200/80 overflow-hidden animate-pulse">
+          <div className="h-48 bg-stone-100" />
           <div className="p-4 space-y-2.5">
-            <div className="h-3 bg-slate-100 rounded-md w-1/3" />
-            <div className="h-4 bg-slate-100 rounded-md w-full" />
-            <div className="h-5 bg-slate-100 rounded-md w-1/3 mt-3" />
-            <div className="h-9 bg-slate-100 rounded-xl mt-3" />
+            <div className="h-3 bg-stone-100 rounded-md w-1/3" />
+            <div className="h-4 bg-stone-100 rounded-md w-full" />
+            <div className="h-5 bg-stone-100 rounded-md w-1/3 mt-3" />
+            <div className="h-9 bg-stone-100 rounded-xl mt-3" />
           </div>
         </div>
       ))}
@@ -149,15 +149,15 @@ function WishlistCard({ item, onRemove, onMoveToCart }) {
   return (
     <div
       className={[
-        'bg-white rounded-2xl border border-slate-200/80 flex flex-col overflow-hidden group',
-        'transition-all duration-300 hover:shadow-xl hover:shadow-slate-900/5 hover:border-indigo-200',
+        'bg-white rounded-2xl border border-stone-200/90 flex flex-col overflow-hidden group',
+        'transition-all duration-300 hover:shadow-lg hover:shadow-stone-900/5 hover:border-stone-300',
         busy ? 'opacity-60 pointer-events-none' : '',
       ].join(' ')}
     >
       {/* Product Image */}
       <Link
         to={productId ? `/product/${productId}` : '#'}
-        className="h-48 flex items-center justify-center relative select-none p-4 border-b border-slate-100 overflow-hidden"
+        className="h-48 flex items-center justify-center relative select-none p-4 border-b border-stone-100 overflow-hidden"
         style={{ backgroundColor: showImg ? '#ffffff' : bg }}
       >
         {showImg ? (
@@ -169,7 +169,7 @@ function WishlistCard({ item, onRemove, onMoveToCart }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <span className="text-5xl font-extrabold text-slate-300">
+          <span className="text-5xl font-extrabold text-stone-300">
             {(product.product_name ?? '?')[0].toUpperCase()}
           </span>
         )}
@@ -184,11 +184,11 @@ function WishlistCard({ item, onRemove, onMoveToCart }) {
       {/* Details */}
       <div className="flex flex-col flex-1 p-4">
         <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 truncate">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 truncate">
             {product.brand_name || 'Chatram'}
           </span>
           {rating > 0 && (
-            <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-slate-700 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md">
+            <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-stone-700 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md">
               <span className="text-amber-500">★</span> {rating.toFixed(1)}
             </span>
           )}
@@ -196,12 +196,12 @@ function WishlistCard({ item, onRemove, onMoveToCart }) {
 
         <Link
           to={productId ? `/product/${productId}` : '#'}
-          className="text-sm font-bold text-slate-900 hover:text-indigo-600 line-clamp-2 leading-snug mb-2 transition-colors"
+          className="text-sm font-bold text-stone-900 hover:text-orange-700 line-clamp-2 leading-snug mb-2 transition-colors"
         >
           {product.product_name ?? 'Unknown product'}
         </Link>
 
-        <p className="text-lg font-extrabold font-mono text-slate-900 mt-auto pt-2">
+        <p className="text-lg font-extrabold font-mono text-stone-900 mt-auto pt-2">
           {formatPrice(product.base_price)}
         </p>
 
@@ -209,16 +209,16 @@ function WishlistCard({ item, onRemove, onMoveToCart }) {
           <button
             onClick={handleMoveToCart}
             disabled={busy}
-            className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
           >
-            {movingToCart ? 'Moving to Cart…' : '🛒 Move to Cart'}
+            {movingToCart ? 'Moving to Cart…' : '+ Move to Cart'}
           </button>
 
           <div className="flex gap-2">
             {productId && (
               <Link
                 to={`/product/${productId}`}
-                className="flex-1 py-2 px-2 rounded-xl text-xs font-semibold text-center border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors"
+                className="flex-1 py-2 px-2 rounded-xl text-xs font-semibold text-center border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 transition-colors"
               >
                 View Details
               </Link>
@@ -226,7 +226,7 @@ function WishlistCard({ item, onRemove, onMoveToCart }) {
             <button
               onClick={handleRemove}
               disabled={busy}
-              className="flex-1 py-2 px-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white hover:border-rose-200 hover:text-rose-600 hover:bg-rose-50 text-slate-500 transition-colors cursor-pointer"
+              className="flex-1 py-2 px-2 rounded-xl text-xs font-semibold border border-stone-200 bg-white hover:border-rose-200 hover:text-rose-600 hover:bg-rose-50 text-stone-500 transition-colors cursor-pointer"
             >
               {removing ? '…' : 'Remove'}
             </button>
@@ -313,22 +313,22 @@ export default function Wishlist() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col">
       <Header />
 
       <main className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {!loading && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight">
                 Saved Wishlist
                 {items.length > 0 && (
-                  <span className="ml-2.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">
+                  <span className="ml-2.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-stone-200/80 text-stone-800">
                     {items.length} {items.length === 1 ? 'item' : 'items'}
                   </span>
                 )}
               </h1>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-stone-500 mt-0.5">
                 Keep track of your favorite finds and move them to your cart anytime.
               </p>
             </div>
@@ -338,15 +338,15 @@ export default function Wishlist() {
                 {items.length > 1 && (
                   <button
                     onClick={handleCompareWithAI}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 text-xs font-bold transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition-all cursor-pointer"
                   >
-                    <SparkleIcon className="w-3.5 h-3.5" />
-                    <span>Compare Wishlist with AI</span>
+                    <SparkleIcon className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Compare Wishlist</span>
                   </button>
                 )}
                 <Link
                   to="/"
-                  className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors"
+                  className="px-4 py-2 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-semibold transition-colors"
                 >
                   Continue Shopping
                 </Link>
@@ -367,7 +367,7 @@ export default function Wishlist() {
         {loading ? (
           <WishlistSkeleton />
         ) : items.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs">
+          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-2xs">
             <EmptyWishlist />
           </div>
         ) : (
@@ -393,7 +393,7 @@ export default function Wishlist() {
           aria-live="polite"
           className={[
             'fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-xl text-xs font-semibold transition-all',
-            toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white',
+            toast.type === 'error' ? 'bg-rose-600 text-white' : 'bg-[#141413] text-white',
           ].join(' ')}
         >
           {toast.msg}
